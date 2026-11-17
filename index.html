@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>클래식 지렁이(스네이크) 게임</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #1a202c;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .game-container {
+      background: #2d3748;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 460px;
+      width: 100%;
+    }
+    .badge {
+      display: inline-block;
+      background: #4a5568;
+      color: #edf2f7;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      color: #68d391;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      background: #1a202c;
+      padding: 10px 18px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .score {
+      color: #ecc94b;
+    }
+    .high-score {
+      color: #63b3ed;
+    }
+    canvas {
+      background: #0f172a;
+      border: 3px solid #4a5568;
+      border-radius: 8px;
+      display: block;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .controls-guide {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #a0aec0;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .btn-container {
+      margin-top: 16px;
+      width: 100%;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      background: #48bb78;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover {
+      background: #38a169;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .mobile-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 50px);
+      grid-template-rows: repeat(2, 45px);
+      gap: 8px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .arrow-btn {
+      background: #4a5568;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .arrow-btn:active {
+      background: #718096;
+    }
+    .arrow-up { grid-column: 2; grid-row: 1; }
+    .arrow-left { grid-column: 1; grid-row: 2; }
+    .arrow-down { grid-column: 2; grid-row: 2; }
+    .arrow-right { grid-column: 3; grid-row: 2; }
+
+    /* 게임오버 모달 안내 */
+    .game-message {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fc8181;
+      height: 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="badge">제작자: [내 닉네임]</div>
+    <h1>클래식 지렁이 게임</h1>
+    
+    <div class="score-board">
+      <span>점수: <span id="score-text" class="score">0</span></span>
+      <span>최고 점수: <span id="high-score-text" class="high-score">0</span></span>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div id="game-message" class="game-message"></div>
+
+    <div class="btn-container">
+      <button id="start-btn" class="btn" type="button">게임 시작</button>
+      <button id="restart-btn" class="btn" type="button" style="display: none; background: #e53e3e;">다시 시작</button>
+    </div>
+
+    <!-- 터치 및 마우스용 방향키 -->
+    <div class="mobile-controls">
+      <button class="arrow-btn arrow-up" onclick="changeDirection('UP')">▲</button>
+      <button class="arrow-btn arrow-left" onclick="changeDirection('LEFT')">◀</button>
+      <button class="arrow-btn arrow-down" onclick="changeDirection('DOWN')">▼</button>
+      <button class="arrow-btn arrow-right" onclick="changeDirection('RIGHT')">▶</button>
+    </div>
+
+    <div class="controls-guide">
+      조작법: 키보드 방향키(↑, ↓, ←, →) 또는 화면의 화살표 버튼
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreText = document.getElementById('score-text');
+    const highScoreText = document.getElementById('high-score-text');
+    const gameMessage = document.getElementById('game-message');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+
+    const GRID_SIZE = 20; // 20x20 격자
+    const TILE_COUNT = canvas.width / GRID_SIZE; // 400 / 20 = 20칸
+
+    let snake = [];
+    let food = { x: 0, y: 0 };
+    let dx = 0;
+    let dy = 0;
+    let nextDx = 0;
+    let nextDy = 0;
+    let score = 0;
+    let highScore = localStorage.getItem('snake_high_score') || 0;
+    let gameInterval = null;
+    let isRunning = false;
+    let gameSpeed = 120; // ms
+
+    highScoreText.textContent = highScore;
+
+    function resetGame() {
+      snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+      ];
+      dx = 1;
+      dy = 0;
+      nextDx = 1;
+      nextDy = 0;
+      score = 0;
+      scoreText.textContent = score;
+      gameMessage.textContent = '';
+      spawnFood();
+    }
+
+    function spawnFood() {
+      let validLocation = false;
+      while (!validLocation) {
+        food.x = Math.floor(Math.random() * TILE_COUNT);
+        food.y = Math.floor(Math.random() * TILE_COUNT);
+        validLocation = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+      }
+    }
+
+    function gameLoop() {
+      // 방향 전환 적용 (한 틱에 한 번만 변경되도록 방지)
+      dx = nextDx;
+      dy = nextDy;
+
+      // 머리 이동
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      // 벽 충돌 검사
+      if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT) {
+        gameOver("벽에 부딪혔습니다!");
+        return;
+      }
+
+      // 몸통 충돌 검사
+      for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          gameOver("자기 몸에 부딪혔습니다!");
+          return;
+        }
+      }
+
+      snake.unshift(head);
+
+      // 사과 먹기 판정
+      if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreText.textContent = score;
+        if (score > highScore) {
+          highScore = score;
+          highScoreText.textContent = highScore;
+          localStorage.setItem('snake_high_score', highScore);
+        }
+        spawnFood();
+      } else {
+        snake.pop(); // 먹지 않았으면 꼬리 제거
+      }
+
+      draw();
+    }
+
+    function draw() {
+      // 캔버스 초기화
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 격자 선 그리기 (연하게)
+      ctx.strokeStyle = '#1e293b';
+      for (let i = 0; i < canvas.width; i += GRID_SIZE) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+      }
+
+      // 사과 그리기
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(
+        food.x * GRID_SIZE + GRID_SIZE / 2,
+        food.y * GRID_SIZE + GRID_SIZE / 2,
+        GRID_SIZE / 2 - 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      // 지렁이 그리기
+      snake.forEach((segment, index) => {
+        if (index === 0) {
+          ctx.fillStyle = '#48bb78'; // 머리 색상
+        } else {
+          ctx.fillStyle = '#68d391'; // 몸통 색상
+        }
+        ctx.fillRect(
+          segment.x * GRID_SIZE + 1,
+          segment.y * GRID_SIZE + 1,
+          GRID_SIZE - 2,
+          GRID_SIZE - 2
+        );
+      });
+    }
+
+    function gameOver(reason) {
+      clearInterval(gameInterval);
+      isRunning = false;
+      gameMessage.textContent = `💥 게임 오버! (${reason})`;
+      restartBtn.style.display = 'block';
+      startBtn.style.display = 'none';
+    }
+
+    function startGame() {
+      if (isRunning) return;
+      resetGame();
+      isRunning = true;
+      startBtn.style.display = 'none';
+      restartBtn.style.display = 'none';
+      gameMessage.textContent = '';
+      draw();
+      gameInterval = setInterval(gameLoop, gameSpeed);
+    }
+
+    function changeDirection(dir) {
+      if (!isRunning) return;
+      if (dir === 'UP' && dy === 0) {
+        nextDx = 0; nextDy = -1;
+      } else if (dir === 'DOWN' && dy === 0) {
+        nextDx = 0; nextDy = 1;
+      } else if (dir === 'LEFT' && dx === 0) {
+        nextDx = -1; nextDy = 0;
+      } else if (dir === 'RIGHT' && dx === 0) {
+        nextDx = 1; nextDy = 0;
+      }
+    }
+
+    // 키보드 조작 이벤트
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault(); // 스크롤 방지
+      }
+
+      if (!isRunning && (e.key === ' ' || e.key === 'Enter')) {
+        startGame();
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          changeDirection('UP');
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          changeDirection('DOWN');
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          changeDirection('LEFT');
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          changeDirection('RIGHT');
+          break;
+      }
+    });
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+
+    // 초기 화면 렌더링
+    resetGame();
+    draw();
+  </script>
+</body>
+</html>
