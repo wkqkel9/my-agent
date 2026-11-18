@@ -8,7 +8,8 @@
 - AI 평가 연동: 등록된 정답과 일치하면 브라우저에서 즉시 통과한다. 그 외 모든 입력은 `https://writing-server.vercel.app/api/assess` → Groq `openai/gpt-oss-120b`로 판정한다. 브라우저 수동 오류 판정은 제거했다. 25초 대기 후 실패·재시도를 안내하며, 수정·재제출·단계 이동·시간 종료 이후의 오래된 응답은 무시한다.
 - 피드백: 불필요한 표현 → 틀린 표현 → 빠진 표현 순서로 한 항목만 표시한다. 추가된 표현은 철자가 틀려도 전체를 먼저 표시하며, 수정 후 재제출하면 다시 판정한다. 정답·교정 표현·예시는 반복 제출·시간 종료에도 공개하지 않는다. 판정 불가 안내에도 예시를 넣지 않는다.
 - 백엔드: `/home/user/work/writing-server` 독립 저장소의 `master` 브랜치. `evaluator.py`(Groq 평가), `api/index.py`(Vercel HTTP API), `main.py`(로컬 HTTP API), `db.py`(로컬 SQLite). 비밀 파일은 Git에서 제외하며 Vercel Production의 `GROQ_API_KEY`, `GROQ_MODEL` 환경변수로 운영한다.
-- Groq 배포 확인: 서버 커밋 `b9377b2`, Vercel 배포 `dpl_EyYfFFCq7h9eDbzu6qjDFVvTiujB` READY. 공개 API HTTP 200·Groq 모델·정답/추가/오류/누락 판정·하이라이트 범위·CORS를 확인했다. 힌트는 한글로만 허용하고 교정 영어가 섞이면 평가 실패로 처리한다. 본동사 시제 변경은 불필요한 표현이 아닌 시제 오류로 판정하도록 지시한다.
+- Groq 배포 확인: 서버 커밋 `daf739b`, Vercel 배포 `dpl_AXWvVrFHvASazJjH1o6ubtrfYHcU` READY. 공개 API와 실제 브라우저에서 Groq 시제 오류 응답을 확인했다. 힌트는 한글로만 허용하고 교정 영어가 섞이면 평가 실패로 처리한다. 본동사 시제 변경은 불필요한 표현이 아닌 시제 오류로 판정하도록 지시한다.
+- 현재 앱 배포: 커밋 `7824771`, GitHub Actions `44261719322` 성공. 공개 HTML 일치와 실제 브라우저 → Vercel → Groq 경로에서 `I gonna read a book`의 시제 오류·현재 시제 수정 안내·`gonna` 하이라이트를 확인했다.
 - 현재 검증: AI 전용 요청·등록 정답 즉시 통과·빈 입력 전달·오래된 응답 무시·편집 중 응답 무시·실패 재시도·AI 정답 후 진행 테스트 통과. PC·모바일(1280·390px)의 AI 피드백·입력 하이라이트·실패 안내·단계 이동·가로 넘침·스크립트 오류 검증 통과.
 - 기능 안내 챗봇 소스: `/home/user/work/ask-once/faq.json`, `chatbot.js`. API 요청 없이 검토한 FAQ로 답한다. `build_chatbot.py --output /home/user/work/my-agent/chatbot.js`로 실행 파일을 생성하고, Pages에서 HTML과 함께 배포한다. 분류·하위 질문·뒤로 가기와 실행 중 기능 문맥을 제공한다. PC·모바일(1280·390·360px) 분류·하위 질문·후속 입력·이동·초기화·스크립트 오류 검증과 기존 영작 회귀 검증을 통과했다. 공개 사이트에서도 동일한 챗봇 검증을 통과했으며 HTML·JS의 HTTP 200과 로컬 파일 일치를 확인했다.
 - 시스템 Node가 없어 검증에는 `/tmp`의 Playwright Node와 Chromium을 사용했다. 일반 환경에서는 `node tests/expansion.test.js`, Playwright·Chromium 설치 후 `python tests/expansion.browser.py`로 실행한다.
