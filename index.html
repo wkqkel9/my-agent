@@ -196,11 +196,11 @@ function submitExpansionAnswer(){
  if(localResult.kind!=='correct'&&typeof fetch==='function'){
   try{
    const controller=typeof AbortController==='function'?new AbortController():null;
-   const timeoutId=controller?setTimeout(()=>controller.abort(),1500):null;
-   fetch('http://127.0.0.1:8000/api/assess',{
+   const timeoutId=controller?setTimeout(()=>controller.abort(),2500):null;
+   fetch('https://writing-server.vercel.app/api/assess',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text:text,round:round,session_id:'local-session'}),
+    body:JSON.stringify({text:text,round:round,session_id:'web-session'}),
     signal:controller?controller.signal:undefined
    }).then(resp=>{
     if(timeoutId)clearTimeout(timeoutId);
