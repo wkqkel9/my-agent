@@ -3,7 +3,7 @@
 작업 전 [AGENTS.md](AGENTS.md)와 [확정 기획](PLANNING.md)을 읽는다.
 
 - 앱: `index.html`의 영어 문장 확장·따라 쓰기 연습. 배포 설정은 `.github/workflows/pages.yml`.
-- 최신 확인 앱 배포: 커밋 `6359eea`, GitHub Actions 실행 `44245015514` 성공. 주소: https://wkqkel9.github.io/my-agent/
+- 최신 확인 앱 배포: 커밋 `6b23c82`, GitHub Actions 실행 `44245449639` 성공. 주소: https://wkqkel9.github.io/my-agent/
 - 구현: 영작 입력 아래 액션 버튼 행을 제거했다. Enter 또는 모바일 키보드 전송으로 제출한다. 문장마다 60초, 정답 시 즉시 다음 문장, 시간 종료 후 내 답·한글 뜻 비교와 Enter·입력창 클릭으로 진행한다.
 - 피드백: 불필요한 표현 → 틀린 표현 → 빠진 표현 순서로 한 항목만 표시한다. 추가된 표현은 철자가 틀려도 전체를 먼저 표시하며, 수정 후 재제출하면 다시 판정한다. 정답·교정 표현·예시는 반복 제출·시간 종료에도 공개하지 않는다. 판정 불가 안내에도 예시를 넣지 않는다.
 - 현재 판정기의 미충족 사항: 규칙에서 벗어난 답에는 막연한 판정 불가 안내가 남아 있어 최신 기획을 충족하지 못한다. `I'm gonna read a book`도 이 경로에 들어간다. 현재 배포는 정적 HTML이며 문장 판정용 서버·AI 연결 구현은 없다.
@@ -16,4 +16,4 @@
 - 문서 위치: [PLANNING.md](PLANNING.md)에 기획을 통합하고 [lesson/lesson2.md](lesson/lesson2.md)에 수업 2 기록을 유지한다. lesson 폴더의 Markdown은 docs_group·lesson_order 메타데이터로 Docs 하위 트리에 자동 표시한다. lesson.html은 새 Lesson 2 주소로 이동한다. 배포 후 PC·모바일(1280·390·360px)에서 중첩 트리·현재 파일 표시·문서 내용·접기·키보드·새로고침·기존 주소 연결·화면 너비 검증을 통과했다. Lesson 2 주소: https://wkqkel9.github.io/my-agent/lesson/lesson2.html
 
 
-- Docs UI: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·문서 본문·사이드바를 제공한다. 이번 변경은 최상위 접기·폴더 구분선·파일 아이콘을 제거하고, lesson의 꺾쇠·한 단계 들여쓰기·선택 배경을 정리했다. 기본 문서는 PLANNING.md이며 docs.html·각 문서 URL에서 같은 사이드바를 유지한다. 이번 사이드바 변경은 검증·배포 전이다.
+- Docs UI: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·문서 본문·사이드바를 제공한다. 이번 변경은 최상위 접기·폴더 구분선·파일 아이콘을 제거하고, lesson의 꺾쇠·한 단계 들여쓰기·선택 배경을 정리했다. 기본 문서는 PLANNING.md이며 docs.html·각 문서 URL에서 같은 사이드바를 유지한다. 배포 후 PC·모바일(1280·390·360px)에서 부모 항목 정렬·하위 문서 12px 들여쓰기·선택 표시·접기·키보드·문서 이동·기존 주소 연결·가로 넘침 검증을 통과했다. 공개 화면 이미지와 배포 CSS 일치도 확인했다.
