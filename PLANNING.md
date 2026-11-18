@@ -52,5 +52,5 @@ title: 확정 기획
 ## 기획 및 서비스 관리
 
 - 서비스와 챗봇의 확정 기획은 `PLANNING.md`에 통합 유지한다.
-- 회차별 학습 기록은 `lesson/lessonN.md`, 서비스 동작 다이어그램은 `ARCHITECTURE.md`에서 관리한다.
+- 회차별 학습 기록은 `lesson/lessonN.md`, 서비스 동작 다이어그램은 `ARCHITECTURE.md`에서 관리한다. 아키텍처 문서는 Docs 메뉴와 공개 `ARCHITECTURE.html` 주소에서 열 수 있어야 한다.
 - 수정한 앱 변경은 항상 검증 후 커밋·푸시하고 기존 경로로 배포한다. 배포 성공과 실제 공개 반영을 확인한 뒤 공개 링크를 제공한다.

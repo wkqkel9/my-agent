@@ -26,4 +26,5 @@
   - Lesson 6: https://wkqkel9.github.io/my-agent/lesson/lesson6.html
 
 
+- 문서 배포: `.github/workflows/pages.yml`에 `ARCHITECTURE.md`를 포함하며, 렌더링 후 `docs.html`·`PLANNING.html`·`ARCHITECTURE.html`의 생성 여부를 검사한다. `ARCHITECTURE.md`는 현재 Pages → Vercel → Groq 흐름을 설명한다.
 - Docs UI: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·문서 본문·사이드바를 제공한다. 이번 변경은 최상위 접기·폴더 구분선·파일 아이콘을 제거하고, lesson의 꺾쇠·한 단계 들여쓰기·선택 배경을 정리했다. 기본 문서는 PLANNING.md이며 docs.html·각 문서 URL에서 같은 사이드바를 유지한다. 배포 후 PC·모바일(1280·390·360px)에서 부모 항목 정렬·하위 문서 12px 들여쓰기·선택 표시·접기·키보드·문서 이동·기존 주소 연결·가로 넘침 검증을 통과했다. 공개 화면 이미지와 배포 CSS 일치도 확인했다.
