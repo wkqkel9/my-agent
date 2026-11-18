@@ -9,7 +9,7 @@ const run=s=>vm.runInContext(s,context),flush=()=>new Promise(r=>setImmediate(r)
  run('startPractice();expandInput.value="I read a book";submitExpansionAnswer()');assert.equal(run('round'),1);assert.equal(requests.length,0);
  for(const text of ['I gonna read a book','I raed books','read books','', '나는 책을 읽는다']){
   run(`expandInput.value=${JSON.stringify(text)};submitExpansionAnswer()`);await flush();
-  assert.equal(run('feedback.dataset.kind'),'pending');assert.equal(JSON.parse(requests.at(-1).options.body).text,text);
+  assert.equal(run('feedback.hidden'),true);assert.equal(JSON.parse(requests.at(-1).options.body).text,text);
  }
  const beforeDuplicate=requests.length;run('submitExpansionAnswer()');await flush();assert.equal(requests.length,beforeDuplicate);
  const latest=requests.at(-1);latest.resolve({ok:true,json:async()=>({kind:'error',label:'틀린 표현',hint:'현재 시제로 바꿔보세요.',target:null,range:null,meaning:'읽는다'})});await flush();await flush();assert.equal(run('feedback.dataset.kind'),'error');

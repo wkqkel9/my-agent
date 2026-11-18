@@ -86,7 +86,7 @@ function highlightAnswer(result){
 function showFeedback(result){
  if(result.kind==='correct'){solved++;const message=result.hint;advanceSentence();if(practiceState!=='complete')expandStatus.textContent=`✓ ${message} 다음 문장에 60초가 주어져요.`;return;}
  feedback.dataset.kind=result.kind;document.querySelector('#feedbackTitle').textContent=result.label;document.querySelector('#feedbackReason').textContent=result.hint;feedback.hidden=false;updatePrompt(result.meaning);highlightAnswer(result);
- expandStatus.textContent=result.kind==='pending'?'AI 평가 중 · 시간은 계속 흘러요.':'수정 후 Enter로 다시 확인 · 시간은 계속 흘러요.';
+ expandStatus.textContent='수정 후 Enter로 다시 확인 · 시간은 계속 흘러요.';
 }
 function tick(){
  const remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));document.querySelector('#clockSeconds').textContent=String(remaining);clock.dataset.phase=remaining<=10?'urgent':remaining<=30?'warning':'normal';clock.dataset.running=String(running&&remaining>0);clock.setAttribute('aria-label',`이 문장 남은 시간 ${remaining}초`);if(!remaining)finish();
@@ -119,7 +119,8 @@ function submitExpansionAnswer(){
  if(assessmentCache.has(key)){showFeedback(assessmentCache.get(key));return;}
  const requestId=assessmentId,requestRound=round;
  assessmentKey=key;
- showFeedback({kind:'pending',label:'평가 중',hint:'입력한 문장을 확인하고 있어요. 잠시 기다려주세요.'});
+ clearFeedback();
+ expandStatus.textContent='Enter로 확인 · 정답이면 다음 문장으로 넘어가요.';
  const controller=typeof AbortController==='function'?new AbortController():null;
  assessmentController=controller;
  const timeoutId=controller?setTimeout(()=>controller.abort(),25000):null;
