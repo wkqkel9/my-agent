@@ -1,18 +1,30 @@
-# 클래식 지렁이(스네이크) 게임 🐍
+# 🚀 HomeShot (홈샷) - Agent-First On-Premise Deployment
 
-웹 브라우저에서 가볍게 즐길 수 있는 클래식 스네이크(Snake) 미니 게임 프로젝트입니다.
+내 컴퓨터(WSL2)를 3초 만에 AWS로 만들어주는 **온프레미스 자율 배포 에이전트**입니다.
 
-## 📌 게임 소개
-- **제작자**: [내 닉네임]
-- **조작 방식**: 키보드 방향키(↑, ↓, ←, →), W/A/S/D 또는 화면 내 터치 화살표 버튼
-- **특징**: 외부 라이브러리/패키지/서버 없이 순수 HTML, CSS, JavaScript(HTML5 Canvas)로만 작동하는 단일 파일 프로젝트입니다.
+> **"복잡한 클라우드 설정 없이, 내 컴퓨터 폴더에서 원클릭으로 전 세계 접속 링크를 발급하고 실시간으로 관리합니다."**
 
-## 🎮 게임 규칙
-1. **시작**: '게임 시작' 버튼을 누르면 지렁이가 움직이기 시작합니다.
-2. **점수 획득**: 빨간색 사과(먹이)를 먹으면 길이가 1칸 늘어나고 점수가 10점 올라갑니다.
-3. **최고 점수 저장**: 게임 중 달성한 최고 점수는 브라우저(LocalStorage)에 자동 저장됩니다.
-4. **게임 오버**: 벽이나 자기 몸에 부딪히면 게임이 종료되며, '다시 시작' 버튼을 눌러 바로 재도전할 수 있습니다.
+---
 
-## 🚀 실행 방법
-- 폴더 안의 `index.html` 파일을 웹 브라우저(Chrome, Edge 등)로 더블 클릭하여 바로 플레이할 수 있습니다.
-- GitHub Pages 배포 시 웹 링크만으로 누구나 브라우저에서 바로 즐길 수 있습니다.
+## 📌 핵심 기능
+1. **비용 0원 온프레미스 (Cost-Free On-Premise)**:
+   - AWS나 Vercel의 비싼 구독료 없이, 내 방 컴퓨터(WSL2 리눅스) 본체를 고성능 클라우드 인프라로 활용합니다.
+2. **원클릭 보안 링크 발급 (Instant Secure Ingress)**:
+   - 공유기 포트포워딩이나 IP 노출 없이 보안 터널을 통해 무료 정식 HTTPS 링크를 3초 만에 발급합니다.
+3. **완벽한 수명주기 제어 (Lifecycle Control)**:
+   - 서버 켜기(Start), 끄기(Kill), 재시작(Restart) 및 자원 모니터링을 대시보드와 AI 대화로 제어합니다.
+4. **Railshot 철학 계승 (Autonomous Recovery)**:
+   - 배포 실패 시 에이전트가 에러를 스스로 분석하고 자율 복구를 시도합니다.
+
+---
+
+## 🛠️ 기술 스택
+- **OS / 인프라**: Windows 11 + WSL2 (Ubuntu 26.04 LTS)
+- **런타임**: Python 3.14 / Bash
+- **인터페이스**: HTML5, CSS3 (Modern Dark Glassmorphism), Vanilla JavaScript
+- **통신 규격**: Model Context Protocol (MCP) / Ingress Tunnel
+
+---
+
+## 🌐 데모 및 소개 페이지
+- [HomeShot 소개 페이지 (GitHub Pages)](https://wkqkel9.github.io/homeshot/)
