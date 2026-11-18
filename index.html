@@ -190,7 +190,28 @@ function submitExpansionAnswer(){
  if(practiceState==='idle'||practiceState==='complete'){startPractice();return;}
  if(practiceState==='timeout'){advanceSentence();return;}
  if(Date.now()>=deadline){finish();return;}
- showFeedback(assessAnswer(expandInput.value));
+ const text=expandInput.value;
+ const localResult=assessAnswer(text);
+ showFeedback(localResult);
+ if(localResult.kind!=='correct'&&typeof fetch==='function'){
+  try{
+   const controller=typeof AbortController==='function'?new AbortController():null;
+   const timeoutId=controller?setTimeout(()=>controller.abort(),1500):null;
+   fetch('http://127.0.0.1:8000/api/assess',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:text,round:round,session_id:'local-session'}),
+    signal:controller?controller.signal:undefined
+   }).then(resp=>{
+    if(timeoutId)clearTimeout(timeoutId);
+    if(resp.ok)return resp.json();
+   }).then(aiResult=>{
+    if(aiResult&&aiResult.kind&&aiResult.hint&&expandInput.value===text&&running){
+     showFeedback(aiResult);
+    }
+   }).catch(()=>{});
+  }catch(e){}
+ }
 }
 expandInput.addEventListener('focus',()=>{if(practiceState==='idle')startPractice();});
 expandInput.addEventListener('click',()=>{if(practiceState==='complete')startPractice();else if(practiceState==='timeout')advanceSentence();});
