@@ -16,6 +16,7 @@
 - 현재 검증: AI 전용 요청·등록 정답 즉시 통과·빈 입력 전달·오래된 응답 무시·편집 중 응답 무시·실패 재시도·AI 정답 후 진행 테스트 통과. PC·모바일(1280·390px)의 AI 피드백·입력 하이라이트·실패 안내·단계 이동·가로 넘침·스크립트 오류 검증 통과.
 - 기능 안내 챗봇 소스: `/home/user/work/ask-once/faq.json`, `chatbot.js`. API 요청 없이 검토한 FAQ로 답한다. `build_chatbot.py --output /home/user/work/my-agent/chatbot.js`로 실행 파일을 생성하고, Pages에서 HTML과 함께 배포한다. 분류·하위 질문·뒤로 가기와 실행 중 기능 문맥을 제공한다. PC·모바일(1280·390·360px) 분류·하위 질문·후속 입력·이동·초기화·스크립트 오류 검증과 기존 영작 회귀 검증을 통과했다. 공개 사이트에서도 동일한 챗봇 검증을 통과했으며 HTML·JS의 HTTP 200과 로컬 파일 일치를 확인했다.
 - 시스템 Node가 없어 검증에는 `/tmp`의 Playwright Node와 Chromium을 사용했다. 일반 환경에서는 `node tests/expansion.test.js`, Playwright·Chromium 설치 후 `python tests/expansion.browser.py`로 실행한다.
+- 로컬 Docs 미리보기는 Homebrew Ruby와 프로젝트 내부 `vendor/bundle`을 사용하는 `bin/docs`로 실행한다. 주소는 `http://127.0.0.1:4000/my-agent/docs.html`이며 설치 패키지·빌드 결과·Bundler 로컬 설정은 Git에서 제외한다.
 - AGENTS.md를 공통 지침 원본으로 두고 Claude·Gemini·Cursor·Copilot용 파일에서 연결한다. 자동 로딩 여부는 각 도구 설정에 따라 다르다.
 
 - 문서 위치: [PLANNING.md](PLANNING.md)는 기능별 기획의 목차이며, 세부 기획은 `planning/`, 구현·배포 구조는 [ARCHITECTURE.md](ARCHITECTURE.md), 회차별 기록은 `lesson/`에 유지한다. 배포 확인 완료 주소:

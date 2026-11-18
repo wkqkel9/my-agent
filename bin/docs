@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+project_bundle="/opt/homebrew/opt/ruby/bin/bundle"
+
+"$project_bundle" config set --local path vendor/bundle
+"$project_bundle" check || "$project_bundle" install
+"$project_bundle" exec jekyll serve --host 127.0.0.1 --port 4000

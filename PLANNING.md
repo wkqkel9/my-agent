@@ -20,6 +20,6 @@ title: 확정 기획
 
 ## 관련 문서
 
-- 구현·배포 구조: [ARCHITECTURE.md](ARCHITECTURE.md)
+- 구현·배포 구조: [ARCHITECTURE.md](ARCHITECTURE.html)
 - 현재 구현·배포 상태: `PROJECT_CONTEXT.md`
 - 회차별 학습 기록: `lesson/lessonN.md`
