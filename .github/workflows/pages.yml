@@ -30,9 +30,14 @@ jobs:
 
       - name: Prepare site
         run: |
-          mkdir _site
-          cp index.html chatbot.js _site/
-          touch _site/.nojekyll
+          mkdir _pages
+          cp index.html chatbot.js PLANNING.md lesson.md wiki.md _config.yml _pages/
+
+      - name: Render Markdown with GitHub Pages
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./_pages
+          destination: ./_site
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
