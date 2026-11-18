@@ -48,10 +48,10 @@
 #clock::after{content:'';position:absolute;width:8px;height:4px;right:-4px;top:1px;transform:rotate(45deg);border-radius:2px;background:currentColor}
 #clock[data-phase="warning"]{color:var(--orange)}
 #clock[data-phase="urgent"]{color:#c53030}
-#clock[data-running="true"][data-phase="warning"]{animation:clock-warning-shake 2.4s ease-in-out infinite}
-#clock[data-running="true"][data-phase="urgent"]{animation:clock-urgent-shake 1.1s ease-in-out infinite}
-@keyframes clock-warning-shake{0%,24%,100%{transform:rotate(0)}4%,12%,20%{transform:rotate(-7deg)}8%,16%{transform:rotate(7deg)}}
-@keyframes clock-urgent-shake{0%,55%,100%{transform:rotate(0)}8%,24%,40%{transform:rotate(-11deg)}16%,32%,48%{transform:rotate(11deg)}}
+#clock[data-running="true"][data-phase="warning"]{animation:clock-warning-shake .6s ease-in-out 1}
+#clock[data-running="true"][data-phase="urgent"]{animation:clock-urgent-shake .65s ease-in-out 1}
+@keyframes clock-warning-shake{0%,100%{transform:rotate(0)}15%,45%,75%{transform:rotate(-7deg)}30%,60%,90%{transform:rotate(7deg)}}
+@keyframes clock-urgent-shake{0%,100%{transform:rotate(0)}12%,36%,60%,84%{transform:rotate(-11deg)}24%,48%,72%{transform:rotate(11deg)}}
 @media(prefers-reduced-motion:reduce){#clock{animation:none!important;transition:none}}
 </style></head>
 <body><div class="wrap"><nav aria-label="주 메뉴"><a class="brand" href="#" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a><div class="links"><a href="#features">학습방법</a><a href="#expansion">문장확장</a><a href="#copywriting">필사</a></div></nav>
