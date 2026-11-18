@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f9f8f5">
-  <title>{{ page.title | escape }} — typing Wiki</title>
+  <title>{{ page.title | escape }} — typing Docs</title>
   <link rel="stylesheet" href="{{ '/wiki.css' | relative_url }}">
 </head>
 <body>
@@ -16,15 +16,15 @@
         <a href="{{ '/' | relative_url }}#features">학습방법</a>
         <a href="{{ '/' | relative_url }}#expansion">문장확장</a>
         <a href="{{ '/' | relative_url }}#copywriting">필사</a>
-        <a href="{{ '/wiki.html' | relative_url }}" aria-current="location">Wiki</a>
+        <a href="{{ '/docs.html' | relative_url }}" aria-current="location">Docs</a>
       </nav>
     </header>
     {% assign current_file = page.name %}
     {% if page.name == 'wiki.md' %}{% assign current_file = 'PLANNING.md' %}{% endif %}
     <div class="wiki-layout">
-      <aside class="sidebar" aria-label="Wiki 문서">
+      <aside class="sidebar" aria-label="Docs 문서">
         <div class="eyebrow">The notebook</div>
-        <a class="wiki-title" href="{{ '/wiki.html' | relative_url }}">Wiki<span>.</span></a>
+        <a class="wiki-title" href="{{ '/docs.html' | relative_url }}">Docs<span>.</span></a>
         <p class="sidebar-note">기획과 배움의 기록.</p>
         <nav aria-label="Markdown 파일 트리">
           <details class="file-tree" open>
@@ -49,7 +49,7 @@
         </article>
       </main>
     </div>
-    <footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><a href="{{ '/wiki.html' | relative_url }}">기획과 기록 ↗</a></footer>
+    <footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><a href="{{ '/docs.html' | relative_url }}">기획과 기록 ↗</a></footer>
   </div>
 </body>
 </html>
