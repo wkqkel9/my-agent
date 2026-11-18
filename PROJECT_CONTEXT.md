@@ -14,3 +14,5 @@
 - AGENTS.md를 공통 지침 원본으로 두고 Claude·Gemini·Cursor·Copilot용 파일에서 연결한다. 자동 로딩 여부는 각 도구 설정에 따라 다르다.
 
 - 문서 위치: 챗봇 기획을 [PLANNING.md](PLANNING.md)에 통합하고 [lesson.md](lesson.md)를 ask-once에서 옮겼다. 상단 Wiki는 wiki.md와 두 문서를 GitHub Pages 기본 Jekyll로 변환해 제공한다. Wiki·기획·Lesson 문서 배포와 공개 PC·모바일(1280·390·360px) 이동·렌더링·화면 너비 검증을 완료했다. 주소: https://wkqkel9.github.io/my-agent/wiki.html
+
+- Wiki 디자인 변경: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·파일 트리·문서 본문을 제공한다. Wiki 기본 문서는 PLANNING.md이며 각 문서 URL에서도 같은 트리를 유지한다. 새 디자인은 검증·배포 전이다.

@@ -3,8 +3,6 @@ layout: default
 title: Lesson
 ---
 
-[← Wiki](wiki.html)
-
 # 학습 내용과 프로젝트 적용
 
 ## Lesson 2 — 두뇌·지시·기억: API 한 번과 규칙 대화

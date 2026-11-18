@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9f8f5">
+  <title>{{ page.title | escape }} — typing Wiki</title>
+  <link rel="stylesheet" href="{{ '/wiki.css' | relative_url }}">
+</head>
+<body>
+  <a class="skip-link" href="#document">본문으로 이동</a>
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="{{ '/' | relative_url }}" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a>
+      <nav class="links" aria-label="주 메뉴">
+        <a href="{{ '/' | relative_url }}#features">학습방법</a>
+        <a href="{{ '/' | relative_url }}#expansion">문장확장</a>
+        <a href="{{ '/' | relative_url }}#copywriting">필사</a>
+        <a href="{{ '/wiki.html' | relative_url }}" aria-current="location">Wiki</a>
+      </nav>
+    </header>
+    {% assign current_file = page.name %}
+    {% if page.name == 'wiki.md' %}{% assign current_file = 'PLANNING.md' %}{% endif %}
+    <div class="wiki-layout">
+      <aside class="sidebar" aria-label="Wiki 문서">
+        <div class="eyebrow">The notebook</div>
+        <a class="wiki-title" href="{{ '/wiki.html' | relative_url }}">Wiki<span>.</span></a>
+        <p class="sidebar-note">기획과 배움의 기록.</p>
+        <nav aria-label="Markdown 파일 트리">
+          <details class="file-tree" open>
+            <summary>my-agent<span>/</span></summary>
+            <ul>
+              <li><a href="{{ '/PLANNING.html' | relative_url }}" {% if current_file == 'PLANNING.md' %}aria-current="page"{% endif %}><span class="file-icon" aria-hidden="true">≡</span>PLANNING.md</a></li>
+              <li><a href="{{ '/lesson.html' | relative_url }}" {% if current_file == 'lesson.md' %}aria-current="page"{% endif %}><span class="file-icon" aria-hidden="true">≡</span>lesson.md</a></li>
+            </ul>
+          </details>
+        </nav>
+        <a class="back-link" href="{{ '/' | relative_url }}">← 연습 페이지</a>
+      </aside>
+      <main id="document" tabindex="-1" data-document="{{ current_file }}">
+        <div class="document-path">my-agent <span>/</span> <strong>{{ current_file }}</strong></div>
+        <article class="document-body">
+          {% if page.name == 'wiki.md' %}
+            {% assign planning = site.pages | where: 'name', 'PLANNING.md' | first %}
+            {{ planning.content | markdownify }}
+          {% else %}
+            {{ content }}
+          {% endif %}
+        </article>
+      </main>
+    </div>
+    <footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><a href="{{ '/wiki.html' | relative_url }}">기획과 기록 ↗</a></footer>
+  </div>
+</body>
+</html>
