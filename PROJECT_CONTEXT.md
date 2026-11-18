@@ -13,6 +13,7 @@
 - 시스템 Node가 없어 검증에는 `/tmp`의 Playwright Node와 Chromium을 사용했다. 일반 환경에서는 `node tests/expansion.test.js`, Playwright·Chromium 설치 후 `python tests/expansion.browser.py`로 실행한다.
 - AGENTS.md를 공통 지침 원본으로 두고 Claude·Gemini·Cursor·Copilot용 파일에서 연결한다. 자동 로딩 여부는 각 도구 설정에 따라 다르다.
 
-- 문서 위치: 챗봇 기획을 [PLANNING.md](PLANNING.md)에 통합하고 [lesson.md](lesson.md)를 ask-once에서 옮겼다. 상단 Docs는 wiki.md와 두 문서를 GitHub Pages 기본 Jekyll로 변환해 제공한다. Docs·기획·Lesson 문서 배포와 공개 PC·모바일(1280·390·360px) 이동·렌더링·화면 너비 검증을 완료했다. 주소: https://wkqkel9.github.io/my-agent/docs.html
+- 문서 위치: [PLANNING.md](PLANNING.md)에 기획을 통합하고 [lesson/lesson2.md](lesson/lesson2.md)에 수업 2 기록을 유지한다. lesson 폴더의 Markdown은 docs_group·lesson_order 메타데이터로 Docs 하위 트리에 자동 표시한다. lesson.html은 새 Lesson 2 주소로 이동한다. 회차 분리 변경은 검증·배포 전이다.
+
 
 - Docs 디자인 변경: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·파일 트리·문서 본문을 제공한다. 기본 문서는 PLANNING.md이며 각 문서 URL에서도 같은 트리를 유지한다. 공개 진입 경로는 docs.html이고 기존 wiki.html은 이 주소로 이동한다. 공개 PC·모바일(1280·390·360px) 파일 선택·현재 문서 표시·직접 새로고침·트리 접기·키보드 조작·가로 넘침 검증을 통과했고, 두 화면을 이미지로 확인했다. HTML·CSS의 공개 반영과 기존 주소의 이동도 확인했다.

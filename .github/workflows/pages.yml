@@ -31,8 +31,8 @@ jobs:
       - name: Prepare site
         run: |
           mkdir _pages
-          cp index.html chatbot.js PLANNING.md lesson.md wiki.md wiki.html _config.yml wiki.css _pages/
-          cp -R _layouts _pages/
+          cp index.html chatbot.js PLANNING.md lesson.html wiki.md wiki.html _config.yml wiki.css _pages/
+          cp -R _layouts lesson _pages/
 
       - name: Render Markdown with GitHub Pages
         uses: actions/jekyll-build-pages@v1
