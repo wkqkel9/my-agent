@@ -21,6 +21,8 @@
     </header>
     {% assign current_file = page.path %}
     {% if page.name == 'wiki.md' %}{% assign current_file = 'PLANNING.md' %}{% endif %}
+    {% assign current_name = page.name %}
+    {% if page.name == 'wiki.md' %}{% assign current_name = 'PLANNING.md' %}{% endif %}
     <div class="wiki-layout">
       <aside class="sidebar" aria-label="Docs 문서">
         <div class="eyebrow">The notebook</div>
@@ -30,7 +32,7 @@
           <div class="file-tree">
             <p class="tree-heading">문서</p>
             <ul class="tree-root">
-              <li><a href="{{ '/PLANNING.html' | relative_url }}" {% if current_file == 'PLANNING.md' %}aria-current="page"{% endif %}>PLANNING.md</a></li>
+              <li><a href="{{ '/PLANNING.html' | relative_url }}" {% if current_name == 'PLANNING.md' %}aria-current="page"{% endif %}>PLANNING.md</a></li>
               <li>
                 <details class="lesson-tree" open>
                   <summary><span>lesson</span><span class="tree-chevron" aria-hidden="true"></span></summary>
