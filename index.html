@@ -57,8 +57,9 @@ const feedback=document.querySelector('#expansionFeedback'),expandSurface=docume
 const prompts=['나는 책을 읽는다.','나는 잠들기 전에 책을 읽는다.','나는 매일 밤 잠들기 전에 책을 읽는다.','나는 바쁜 날에도 매일 밤 잠들기 전에 책을 읽는다.'];
 const addedPhrases=['','잠들기 전에','매일 밤','바쁜 날에도'];
 const clauses=[['before bed','before going to bed','before i go to bed','before bedtime','before sleeping','before i sleep','prior to going to bed'],['every night','each night'],['even when i am busy','even on busy days','even if i am busy']];
-let round=0,running=false,deadline=0,interval=null,practiceState='idle',solved=0,assessmentId=0,assessmentController=null;
-function cancelAssessment(){assessmentId++;if(assessmentController)assessmentController.abort();assessmentController=null;}
+let round=0,running=false,deadline=0,interval=null,practiceState='idle',solved=0,assessmentId=0,assessmentController=null,assessmentKey=null;
+const assessmentCache=new Map();
+function cancelAssessment(){assessmentId++;if(assessmentController)assessmentController.abort();assessmentController=null;assessmentKey=null;}
 function normalizeAnswer(value){return value.toLowerCase().replace(/[’‘]/g,"'").replace(/\bi'm\b/g,'i am').replace(/\bdon't\b/g,'do not').replace(/[.,!?;:]/g,' ').replace(/\s+/g,' ').trim();}
 function updatePrompt(meaning=''){
  const prompt=document.querySelector('#koreanPrompt');prompt.replaceChildren();
@@ -109,12 +110,15 @@ function submitExpansionAnswer(){
  if(practiceState==='idle'||practiceState==='complete'){startPractice();return;}
  if(practiceState==='timeout'){advanceSentence();return;}
  if(Date.now()>=deadline){finish();return;}
- const text=expandInput.value;
+ const text=expandInput.value,key=JSON.stringify([round,text]);
+ if(assessmentKey===key)return;
  cancelAssessment();
  if(acceptedAnswers().includes(normalizeAnswer(text))){
   showFeedback({kind:'correct',hint:'같은 뜻의 올바른 표현이에요.'});return;
  }
+ if(assessmentCache.has(key)){showFeedback(assessmentCache.get(key));return;}
  const requestId=assessmentId,requestRound=round;
+ assessmentKey=key;
  showFeedback({kind:'pending',label:'평가 중',hint:'입력한 문장을 확인하고 있어요. 잠시 기다려주세요.'});
  const controller=typeof AbortController==='function'?new AbortController():null;
  assessmentController=controller;
@@ -129,8 +133,10 @@ function submitExpansionAnswer(){
  .then(aiResult=>{
   if(!isCurrent())return;
   if(!aiResult||!['correct','extra','error','typo','incomplete'].includes(aiResult.kind)||typeof aiResult.hint!=='string'||!aiResult.hint||typeof aiResult.label!=='string')throw new Error('Invalid assessment');
+  assessmentCache.set(key,aiResult);
+  if(assessmentCache.size>100)assessmentCache.delete(assessmentCache.keys().next().value);
   showFeedback(aiResult);
- }).catch(failed).finally(()=>{if(timeoutId)clearTimeout(timeoutId);if(assessmentId===requestId)assessmentController=null;});
+ }).catch(failed).finally(()=>{if(timeoutId)clearTimeout(timeoutId);if(assessmentId===requestId){assessmentController=null;assessmentKey=null;}});
 }
 expandInput.addEventListener('focus',()=>{if(practiceState==='idle')startPractice();});
 expandInput.addEventListener('click',()=>{if(practiceState==='complete')startPractice();else if(practiceState==='timeout')advanceSentence();});
