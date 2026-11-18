@@ -53,17 +53,15 @@ const chatFab=document.querySelector('#chatFab'),chatPanel=document.querySelecto
 function setChat(open){chatPanel.hidden=!open;chatFab.setAttribute('aria-expanded',String(open));(open?chatInput:chatFab).focus();}
 chatFab.addEventListener('click',()=>setChat(chatPanel.hidden));document.querySelector('#closeChat').addEventListener('click',()=>setChat(false));document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!chatPanel.hidden)setChat(false);});
 function chatMessage(text,user=false){const el=document.createElement('div');el.className='message'+(user?' user':'');el.textContent=text;chatLog.append(el);chatLog.scrollTop=chatLog.scrollHeight;}
-function ask(question){if(!question.trim())return;chatMessage(question,true);chatInput.value='';let reply='이 도우미는 이용 방법 FAQ를 안내해요. 아래에서 문장 확장 또는 필사 방법을 선택해보세요.';if(/필사|따라/.test(question))reply='필사는 좋은 문장을 그대로 따라 쓰는 별도 연습이에요.\n‘02 — 필사’에서 영어 문장을 입력하면 일치 여부를 확인할 수 있어요. 대소문자와 띄어쓰기, 마침표까지 맞춰보세요. 시간 제한 없이 연습하고 ‘다음 문장’으로 넘어갈 수 있어요.';else if(/확장|시간|60|타이머|패턴|어순/.test(question))reply='문장 확장은 제한 시간 안에 내 문장을 만드는 연습이에요.\n입력창을 누르고 한글 문장을 영어로 입력해보세요. 각 문장마다 60초가 주어져요. Enter 또는 키보드의 전송 키로 답을 확인해보세요. 정답이나 같은 뜻의 허용된 표현이면 바로 다음 문장으로 넘어가며 새로운 60초가 시작돼요. 오답은 남은 시간 안에 수정할 수 있어요. 시간이 끝나면 내 답과 예시를 비교하고 Enter 또는 입력창을 눌러 다음으로 넘어가세요. 마지막 문장을 맞히면 연습이 완료돼요.';chatMessage(reply);}
+function ask(question){if(!question.trim())return;chatMessage(question,true);chatInput.value='';let reply='이 도우미는 이용 방법 FAQ를 안내해요. 아래에서 문장 확장 또는 필사 방법을 선택해보세요.';if(/필사|따라/.test(question))reply='필사는 좋은 문장을 그대로 따라 쓰는 별도 연습이에요.\n‘02 — 필사’에서 영어 문장을 입력하면 일치 여부를 확인할 수 있어요. 대소문자와 띄어쓰기, 마침표까지 맞춰보세요. 시간 제한 없이 연습하고 ‘다음 문장’으로 넘어갈 수 있어요.';else if(/확장|시간|60|타이머|패턴|어순/.test(question))reply='문장 확장은 제한 시간 안에 내 문장을 만드는 연습이에요.\n입력창을 누르고 한글 문장을 영어로 입력해보세요. 각 문장마다 60초가 주어져요. Enter 또는 키보드의 전송 키로 답을 확인해보세요. 정답이나 같은 뜻의 허용된 표현이면 바로 다음 문장으로 넘어가며 새로운 60초가 시작돼요. 오답은 남은 시간 안에 수정할 수 있어요. 시간이 끝나면 내 답과 한글 문장의 뜻을 비교하고 Enter 또는 입력창을 눌러 다음으로 넘어가세요. 마지막 문장을 맞히면 연습이 완료돼요.';chatMessage(reply);}
 document.querySelector('#chatForm').addEventListener('submit',e=>{e.preventDefault();ask(chatInput.value);});document.querySelectorAll('[data-question]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.question)));
 
 const expandInput=document.querySelector('#expandInput'),clock=document.querySelector('#clock'),expandStatus=document.querySelector('#expandStatus');
 const feedback=document.querySelector('#expansionFeedback'),expandSurface=document.querySelector('#expandSurface'),expandHighlight=document.querySelector('#expandHighlight');
 const prompts=['나는 책을 읽는다.','나는 잠들기 전에 책을 읽는다.','나는 매일 밤 잠들기 전에 책을 읽는다.','나는 바쁜 날에도 매일 밤 잠들기 전에 책을 읽는다.'];
-const references=['I read books.','I read books before bed.','I read books before bed every night.','I read books before bed every night, even when I am busy.'];
 const addedPhrases=['','잠들기 전에','매일 밤','바쁜 날에도'];
 const clauses=[['before bed','before going to bed','before i go to bed','before bedtime','before sleeping','before i sleep','prior to going to bed'],['every night','each night'],['even when i am busy','even on busy days','even if i am busy']];
 let round=0,running=false,deadline=0,interval=null,practiceState='idle',solved=0;
-const attempts=new Map();
 function normalizeAnswer(value){return value.toLowerCase().replace(/[’‘]/g,"'").replace(/\bi'm\b/g,'i am').replace(/\bdon't\b/g,'do not').replace(/[.,!?;:]/g,' ').replace(/\s+/g,' ').trim();}
 function updatePrompt(meaning=''){
  const prompt=document.querySelector('#koreanPrompt');prompt.replaceChildren();
@@ -84,36 +82,84 @@ function closeSpelling(a,b){
  if(a.length===b.length){const positions=[...a].map((char,i)=>char===b[i]?-1:i).filter(i=>i>=0);if(positions.length===1)return true;if(positions.length===2){const [i,j]=positions;return j===i+1&&a[i]===b[j]&&a[j]===b[i];}return false;}
  const longer=a.length>b.length?a:b,shorter=a.length>b.length?b:a;let i=0;while(i<shorter.length&&longer[i]===shorter[i])i++;return longer.slice(i+1)===shorter.slice(i);
 }
+// Read optional meanings independently of the core sentence, including a nearby
+// spelling mistake. Keep original offsets for highlighting; never expose corrections.
+function phraseFindings(text){
+ const words=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)].flatMap(match=>normalizeAnswer(match[0]).split(' ').map(word=>({word,start:match.index,end:match.index+match[0].length})));
+ const patterns=clauses.flatMap((group,index)=>group.map(phrase=>({parts:phrase.split(' '),group:index})));
+ for(const phrase of ['going to bed','go to bed','before go to bed'])patterns.push({parts:phrase.split(' '),group:0,malformed:true});
+ for(const phrase of ['yesterday','last night','every day','in the morning','at home','in the park','with my friends'])patterns.push({parts:phrase.split(' '),group:-1});
+ const findings=[];
+ for(let i=0;i<words.length;){
+  const matches=patterns.flatMap(pattern=>{
+   const chunk=words.slice(i,i+pattern.parts.length);if(chunk.length!==pattern.parts.length)return [];
+   const wrong=chunk.map((token,j)=>token.word===pattern.parts[j]?-1:j).filter(j=>j>=0);
+   if(wrong.length>1||wrong.some(j=>!closeSpelling(chunk[j].word,pattern.parts[j])))return [];
+   // An isolated real word is not sufficient evidence of a spelling mistake.
+   if(pattern.parts.length===1&&wrong.length)return [];
+   return [{...pattern,wrong,chunk}];
+  }).sort((a,b)=>a.wrong.length-b.wrong.length||b.parts.length-a.parts.length);
+  if(!matches.length){i++;continue;}
+  const match=matches[0];findings.push({...match,range:[match.chunk[0].start,match.chunk.at(-1).end]});i+=match.parts.length;
+ }
+ return findings;
+}
 function assessAnswer(text){
  const answer=normalizeAnswer(text);
  const result=(kind,key,label,hint,pattern=null,meaning='')=>({kind,key,label,hint,pattern,meaning});
+ const ranged=(item,range)=>Object.assign(item,{range});
  if(!answer)return result('input','empty','입력 안내','영어 문장을 쓰고 Enter를 눌러주세요.');
  if(!/[a-z]/i.test(text))return result('input','language','입력 안내','문제의 뜻을 영어 문장으로 써보세요.');
- const rangePattern=(source)=>new RegExp(source,'i');
- if(/\bi (?:do not|never|cannot|can't|did not|didn't)\b/.test(answer))return result('error','negative','뜻 확인','문제는 ‘읽는다’예요. 부정 표현을 빼보세요.',rangePattern("\\b(?:do not|don't|never|cannot|can't|did not|didn't)\\b"),'읽는다');
- if(/\b(?:yesterday|last night)\b/.test(answer))return result('error','tense','뜻 확인','특정한 과거가 아니라 반복하는 습관을 써보세요.',/\b(?:yesterday|last night)\b/i,'읽는다');
- if(/\bi (?:reads|reading|am read|am reading)\b/.test(answer))return result('error','verb','문법','반복하는 습관은 I read로 써요.',/\b(?:reads|reading|am read|am reading)\b/i,'읽는다');
+ if(acceptedAnswers().includes(answer))return result('correct','accepted','맞아요','같은 뜻의 올바른 표현이에요.');
+ const findings=phraseFindings(text),seen=new Set();
+ // Priority 1: remove unnecessary meanings before correcting their spelling,
+ // or checking grammar and omitted meanings in the rest of the sentence.
+ for(const item of findings){
+  const repeated=seen.has(item.group);seen.add(item.group);
+  if(item.group<0||item.group>=round||repeated)return ranged(result('extra','extra','불필요한 표현',repeated?'같은 뜻이 반복됐어요. 표시한 표현이 필요한지 확인해보세요.':'문제에 없는 표현이 추가됐어요. 한글 문장에 필요한 내용만 남겨보세요.'),item.range);
+ }
+ // If all requested meanings are already covered, a remaining separate phrase
+ // is additional content. Do not apply this heuristic to an unknown paraphrase
+ // that may supply a required meaning.
+ const core=/\bi\s+read\s+(?:a\s+book|the\s+books|the\s+book|books)\b/i.exec(text);
+ if(core&&Array.from({length:round},(_,i)=>i).every(i=>seen.has(i))){
+  const covered=[[core.index,core.index+core[0].length],...findings.map(item=>item.range)];
+  const remaining=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)].filter(word=>!covered.some(([start,end])=>word.index>=start&&word.index<end));
+  if(remaining.length){const first=remaining[0];if(first.index<core.index||first.index>=core.index+core[0].length){let end=first.index+first[0].length;for(const word of remaining.slice(1)){if(/[^\s,]/.test(text.slice(end,word.index)))break;end=word.index+word[0].length;}return ranged(result('extra','extra','불필요한 표현','문제에 없는 표현이 추가됐어요. 한글 문장에 필요한 내용만 남겨보세요.'),[first.index,end]);}}
+ }
+ // Priority 2: correct one existing expression, without supplying its answer.
+ if(/\bi (?:do not|never|cannot|can't|did not|didn't)\b/.test(answer))return result('error','negative','틀린 표현','문제는 부정하는 뜻이 아니에요. 표시한 표현의 뜻을 확인해보세요.',/\b(?:do not|don't|never|cannot|can't|did not|didn't)\b/i,'읽는다');
+ if(/\bi (?:reads|reading|am read|am reading)\b/.test(answer))return result('error','verb','틀린 표현','반복하는 습관이에요. 주어에 맞는 동사의 현재형을 확인해보세요.',/\b(?:am reading|am read|reads|reading)\b/i,'읽는다');
  const different=answer.match(/\bi (buy|write|sell|watch|like)\b/);
- if(different){const meanings={buy:'사다',write:'쓰다',sell:'팔다',watch:'보다',like:'좋아하다'};return result('error','meaning','뜻 확인',`${different[1]}는 ‘${meanings[different[1]]}’예요. ‘읽다’는 read를 써요.`,rangePattern(`\\b${different[1]}\\b`),'읽는다');}
- if(/\bi read (?:a books|book)\b/.test(answer))return result('error','article','문법','한 권이면 a book, 일반적인 독서라면 books를 써요.',/\b(?:a books|book)\b/i);
- if(/\bbefore go to bed\b/.test(answer))return result('error','before','문법','before 뒤 동작은 going to bed로 써요.',/\bgo to bed\b/i,'잠들기 전에');
+ if(different)return result('error','meaning','틀린 표현','표시한 동사가 문제의 ‘읽는다’와 같은 뜻인지 확인해보세요.',new RegExp('\\b'+different[1]+'\\b','i'),'읽는다');
+ if(/\bi read (?:a books|book)\b/.test(answer))return result('error','article','틀린 표현','책을 한 권으로 썼는지 여러 권으로 썼는지 확인하고, 관사와 명사의 수를 맞춰보세요.',/\b(?:a books|book)\b/i,'책을');
+ const malformed=findings.find(item=>item.malformed);
+ if(malformed)return ranged(result('error','before','틀린 표현','‘잠들기 전에’라는 시간 관계가 드러나도록 연결 표현과 그 뒤 동사의 형태를 확인해보세요.',null,'잠들기 전에'),malformed.range);
  const words=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)];
- if(acceptedAnswers().includes(answer))return result('correct','accepted','맞아요',answer.includes('prior to')?'맞아요. 일상적으로는 before bed라고도 해요.':'같은 뜻의 올바른 표현이에요.');
- // Match complete phrase units, so a valid new order can still omit one required meaning.
+ // Check the core and each required phrase independently, so a missing phrase
+ // does not hide a spelling error in another phrase.
+ const spellingParts=[...acceptedAnswers(0),...clauses.slice(0,round).flat()];
+ const exactWords=new Set();
+ for(const phrase of spellingParts){const target=phrase.split(' ');for(let i=0;i<=words.length-target.length;i++)if(target.every((word,j)=>word===words[i+j][0].toLowerCase()))for(let j=0;j<target.length;j++)exactWords.add(i+j);}
+ for(const phrase of spellingParts){
+  const target=phrase.split(' ');
+  for(let offset=0;offset<=words.length-target.length;offset++){
+   const chunk=words.slice(offset,offset+target.length);
+   const wrong=chunk.map((word,i)=>word[0].toLowerCase()===target[i]?-1:i).filter(i=>i>=0);
+   if(wrong.length===1){const i=wrong[0];if(!exactWords.has(offset+i)&&closeSpelling(chunk[i][0].toLowerCase(),target[i]))return ranged(result('typo','spelling','철자',`‘${chunk[i][0]}’의 철자를 확인해보세요.`),[chunk[i].index,chunk[i].index+chunk[i][0].length]);}
+  }
+ }
+ if(/\bbefore$/.test(answer))return result('incomplete','unfinished','빠진 표현','표시한 연결 표현 뒤에 언제인지 이어 써보세요.',/\bbefore\b/i,'잠들기 전에');
+ // Priority 3: ask for one missing meaning, only after known errors are resolved.
+ if(/^read (?:books|a book|the books|the book)\b/.test(answer))return result('incomplete','subject','빠진 표현','누가 읽는지 빠졌어요. ‘나는’에 해당하는 주어를 더해보세요.',null,'나는');
+ if(/^i (?:books|a book|the books|the book)$/.test(answer))return result('incomplete','verb-missing','빠진 표현','무엇을 하는지 빠졌어요. ‘읽는다’에 해당하는 동사를 더해보세요.',null,'읽는다');
+ if(answer==='i read')return result('incomplete','object','빠진 표현','무엇을 읽는지 빠졌어요. ‘책을’에 해당하는 내용을 더해보세요.',null,'책을');
  let rest=answer.replace(/\bi read (?:a book|the books|the book|books)\b/,'').trim();
- if(rest!==answer){const present=new Set();let progress=true;while(rest&&progress){progress=false;for(let i=0;i<clauses.length;i++)for(const phrase of clauses[i])if(rest===phrase||rest.startsWith(phrase+' ')){if(present.has(i))return result('review','repeated','표현 확인',`‘${addedPhrases[i+1]}’ 표현이 반복됐어요. 한 번만 써보세요.`);present.add(i);rest=rest.slice(phrase.length).trim();progress=true;break;}}
-  if(!rest){for(let i=0;i<round;i++)if(!present.has(i)){const meaning=addedPhrases[i+1];return result('incomplete','missing-'+i,'뜻 누락',`‘${meaning}’의 뜻을 더해보세요.`,null,meaning);}if([...present].some(i=>i>=round))return result('review','extra','뜻 확인','문제에 없는 시간·조건이 더해졌어요. 지금 문제의 뜻에 맞춰보세요.');}
+ if(rest!==answer){
+  for(const item of findings)rest=rest.replace(normalizeAnswer(text.slice(...item.range)),'').replace(/\s+/g,' ').trim();
+  if(!rest){for(let i=0;i<round;i++)if(!seen.has(i))return result('incomplete','missing-'+i,'빠진 표현',`‘${addedPhrases[i+1]}’의 뜻이 빠졌어요. 해당 내용을 더해보세요.`,null,addedPhrases[i+1]);}
  }
- if(/^read (?:books|a book|the books|the book)\b/.test(answer))return result('incomplete','subject','문장 이어 쓰기','‘나는’에 해당하는 I를 read 앞에 더해보세요.');
- if(/^i (?:books|a book|the books|the book)$/.test(answer))return result('incomplete','verb-missing','문장 이어 쓰기','‘읽는다’에 해당하는 read를 I 뒤에 더해보세요.');
- if(answer==='i read')return result('incomplete','object','문장 이어 쓰기','무엇을 읽는지 더해보세요. ‘책을’은 books 또는 a book이라고 써요.');
- for(const variant of [...new Set(Array.from({length:round+1},(_,stage)=>acceptedAnswers(stage)).flat())]){
-  const target=variant.split(' ');if(target.length!==words.length)continue;
-  const wrong=words.map((word,i)=>word[0].toLowerCase()===target[i]?-1:i).filter(i=>i>=0);
-  if(wrong.length===1){const i=wrong[0];if(closeSpelling(words[i][0].toLowerCase(),target[i])){const r=result('typo','spelling-'+target[i],'철자',`‘${words[i][0]}’의 철자를 확인해보세요. 바른 철자는 ${target[i]}예요.`);r.range=[words[i].index,words[i].index+words[i][0].length];return r;}}
- }
- if(/\bbefore$/.test(answer))return result('incomplete','unfinished','문장 이어 쓰기','before 뒤에 언제인지 이어 써보세요. 예: before bed',/\bbefore\b/i,'잠들기 전에');
- return result('review','unknown','예시와 비교',`다른 올바른 표현일 수도 있어요. 이 답은 확실히 판정하기 어려워요. 예시: ${references[round]}`);
+ return result('review','unknown','표현 확인','이 표현은 아직 확실하게 판정하기 어려워요. 한글의 뜻과 쓴 문장의 뜻이 같은지 확인해보세요.');
 }
 function syncExpansionScroll(){expandHighlight.scrollTop=expandInput.scrollTop;expandHighlight.scrollLeft=expandInput.scrollLeft;}
 function clearFeedback(){feedback.hidden=true;expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();updatePrompt();}
@@ -125,17 +171,14 @@ function highlightAnswer(result){
 }
 function showFeedback(result){
  if(result.kind==='correct'){solved++;const message=result.hint;advanceSentence();if(practiceState!=='complete')expandStatus.textContent=`✓ ${message} 다음 문장에 60초가 주어져요.`;return;}
- const count=(attempts.get(result.key)||0)+1;attempts.set(result.key,count);
- let hint=result.hint;
- if(result.kind==='incomplete'&&count>1&&addedPhrases.indexOf(result.meaning)>0){const index=addedPhrases.indexOf(result.meaning);hint=`‘${result.meaning}’는 ${clauses[index-1][0]}라고 써요. 기존 문장에 더해보세요.`;}
- feedback.dataset.kind=result.kind;document.querySelector('#feedbackTitle').textContent=result.label;document.querySelector('#feedbackReason').textContent=hint;feedback.hidden=false;updatePrompt(result.meaning);highlightAnswer(result);
+ feedback.dataset.kind=result.kind;document.querySelector('#feedbackTitle').textContent=result.label;document.querySelector('#feedbackReason').textContent=result.hint;feedback.hidden=false;updatePrompt(result.meaning);highlightAnswer(result);
  expandStatus.textContent='수정 후 Enter로 다시 확인 · 시간은 계속 흘러요.';
 }
 function tick(){
  const remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));document.querySelector('#clockSeconds').textContent=String(remaining);clock.dataset.phase=remaining<=10?'urgent':remaining<=30?'warning':'normal';clock.dataset.running=String(running&&remaining>0);clock.setAttribute('aria-label',`이 문장 남은 시간 ${remaining}초`);if(!remaining)finish();
 }
 function beginSentence(){
- clearInterval(interval);practiceState='writing';running=true;attempts.clear();clearFeedback();expandInput.value='';expandInput.placeholder='영어 문장을 쓰고 Enter ↵';deadline=Date.now()+60000;expandStatus.textContent='Enter로 확인 · 정답이면 다음 문장으로 넘어가요.';tick();interval=setInterval(tick,250);expandInput.focus({preventScroll:true});
+ clearInterval(interval);practiceState='writing';running=true;clearFeedback();expandInput.value='';expandInput.placeholder='영어 문장을 쓰고 Enter ↵';deadline=Date.now()+60000;expandStatus.textContent='Enter로 확인 · 정답이면 다음 문장으로 넘어가요.';tick();interval=setInterval(tick,250);expandInput.focus({preventScroll:true});
 }
 function startPractice(){round=0;solved=0;beginSentence();}
 function advanceSentence(){
@@ -145,7 +188,7 @@ function advanceSentence(){
 }
 function finish(){
  clearInterval(interval);running=false;practiceState='timeout';clock.dataset.running='false';document.querySelector('#clockSeconds').textContent='0';
- expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();feedback.dataset.kind='timeout';document.querySelector('#feedbackTitle').textContent='시간 종료';document.querySelector('#feedbackReason').textContent=`내 답과 비교해보세요. 예시: ${references[round]}`;feedback.hidden=false;updatePrompt();expandStatus.textContent='Enter를 누르거나 입력창을 눌러 다음으로 넘어가세요.';
+ expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();feedback.dataset.kind='timeout';document.querySelector('#feedbackTitle').textContent='시간 종료';document.querySelector('#feedbackReason').textContent='입력한 답은 그대로 남겨뒀어요. 한글 문장의 뜻과 비교해보세요.';feedback.hidden=false;updatePrompt();expandStatus.textContent='Enter를 누르거나 입력창을 눌러 다음으로 넘어가세요.';
 }
 function submitExpansionAnswer(){
  if(practiceState==='idle'||practiceState==='complete'){startPractice();return;}

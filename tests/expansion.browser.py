@@ -2,24 +2,40 @@
 # Run from the repository: python tests/expansion.browser.py
 from playwright.sync_api import sync_playwright
 from pathlib import Path
+import os
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
  errors=[]
  for width in [1280,390]:
   page=browser.new_page(viewport={'width':width,'height':950},is_mobile=width==390,has_touch=width==390)
   page.on('pageerror',lambda error: errors.append(str(error)))
-  page.goto((Path(__file__).resolve().parents[1] / 'index.html').as_uri())
+  page.goto(os.environ.get('EXPANSION_TEST_URL', (Path(__file__).resolve().parents[1] / 'index.html').as_uri()))
   box=page.locator('#expandInput'); box.scroll_into_view_if_needed();box.click()
+  box.fill('I reads a book going to bad');box.press('Enter')
+  assert page.locator('#feedbackTitle').inner_text()=='불필요한 표현'
+  assert page.locator('#expandHighlight .typed-wrong').inner_text()=='going to bad'
+  assert '철자' not in page.locator('#feedbackReason').inner_text()
+  box.press('Enter')
+  assert '예시' not in page.locator('#feedbackReason').inner_text()
+  box.fill('I reads a book');box.press('Enter')
+  assert page.locator('#feedbackTitle').inner_text()=='틀린 표현'
+  assert page.locator('#expandHighlight .typed-wrong').inner_text()=='reads'
   box.fill('I raed a book.');box.press('Enter')
   assert page.locator('#feedbackTitle').inner_text()=='철자'
   assert page.locator('#expandHighlight .typed-typo').inner_text()=='raed'
   assert page.locator('#expansion button').count()==0
   box.fill('I read a book.');box.press('Enter')
   assert page.locator('#roundLabel').inner_text()=='02 / 04'
+  box.fill('I raed books every nihgt.');box.press('Enter')
+  assert page.locator('#feedbackTitle').inner_text()=='불필요한 표현'
+  assert page.locator('#expandHighlight .typed-wrong').inner_text()=='every nihgt'
+  box.fill('I raed books.');box.press('Enter')
+  assert page.locator('#feedbackTitle').inner_text()=='철자'
   box.fill('I read a book.');box.press('Enter')
   assert page.locator('#koreanPrompt mark').inner_text()=='잠들기 전에'
   assert page.locator('#feedbackReason').is_visible()
-  box.press('Enter');assert 'before bed' in page.locator('#feedbackReason').inner_text()
+  box.press('Enter');assert 'before bed' not in page.locator('#feedbackReason').inner_text()
+  assert page.locator('#feedbackTitle').inner_text()=='빠진 표현'
   assert page.evaluate('document.documentElement.scrollWidth<=window.innerWidth'), 'horizontal overflow'
   box.fill('Before bed I read a book.');box.press('Enter')
   box.fill('I read books before bed every night.');box.press('Enter')
@@ -28,6 +44,7 @@ with sync_playwright() as p:
   box.press('Enter');assert page.locator('#roundLabel').inner_text()=='01 / 04'
   page.evaluate('deadline=Date.now()-1;tick()')
   assert '시간 종료'==page.locator('#feedbackTitle').inner_text()
+  assert '예시' not in page.locator('#feedbackReason').inner_text()
   box.click();assert page.locator('#roundLabel').inner_text()=='02 / 04'
   # Timeouts preserve the current answer and do not count as correct.
   box.fill('unfinished answer')
