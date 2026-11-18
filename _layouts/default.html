@@ -47,6 +47,17 @@
             <p class="tree-heading">문서</p>
             <ul class="tree-root">
               <li><a href="{{ '/PLANNING.html' | relative_url }}" {% if current_name == 'PLANNING.md' %}aria-current="page"{% endif %}>PLANNING.md</a></li>
+              <li>
+                <details class="lesson-tree" open>
+                  <summary><span>planning</span><span class="tree-chevron" aria-hidden="true"></span></summary>
+                  <ul class="tree-children">
+                    {% assign planning_pages = site.pages | where: 'docs_group', 'planning' | sort: 'planning_order' %}
+                    {% for planning_page in planning_pages %}
+                    <li><a href="{{ planning_page.url | relative_url }}" {% if page.path == planning_page.path %}aria-current="page"{% endif %}>{{ planning_page.name }}</a></li>
+                    {% endfor %}
+                  </ul>
+                </details>
+              </li>
               <li><a href="{{ '/ARCHITECTURE.html' | relative_url }}" {% if current_name == 'ARCHITECTURE.md' %}aria-current="page"{% endif %}>ARCHITECTURE.md</a></li>
               <li>
                 <details class="lesson-tree" open>

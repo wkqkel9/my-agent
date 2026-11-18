@@ -3,6 +3,7 @@
 작업 전 [AGENTS.md](AGENTS.md)와 [확정 기획](PLANNING.md)을 읽는다.
 
 - 화면: `index.html`은 소개·영작/필사 데모, `writing.html`은 영작 전용 페이지다. 상단 탭은 소개·영작·필사·Docs이며, 영작은 별도 페이지로 이동한다.
+- 다음 영작 고도화 범위: 사용자는 주제와 CEFR 난이도만 선택한다. 초기에는 영어 인터뷰를 우선하며, 외부 기준과 자동 검증을 통과한 독립 제작 문제를 4단계로 제공한다. 오답·시간 종료를 학습 요소별로 누적해 취약 요소의 출제 비중을 높이고, 시간 종료 시 해당 단계의 대표 답안 하나를 공개한다. 아직 앱에는 구현하지 않았다.
 - 공통 코드: `writing.js`가 두 페이지의 영작 연습·AI 평가를 담당하고 `site.css`가 공통 디자인을 제공한다. 필사 코드는 소개 페이지에만 있다. `.github/workflows/pages.yml`에서 새 HTML·JS·CSS를 함께 배포한다.
 - 공개 앱 주소: https://wkqkel9.github.io/my-agent/ (GitHub Pages). 수정 후 검증·커밋·푸시·배포 성공·실제 공개 반영까지 확인한다.
 - 구현: 영작 입력 아래 액션 버튼 행을 제거했다. Enter 또는 모바일 키보드 전송으로 제출한다. 문장마다 60초, 정답 시 즉시 다음 문장, 시간 종료 후 내 답·한글 뜻 비교와 Enter·입력창 클릭으로 진행한다.
@@ -17,8 +18,12 @@
 - 시스템 Node가 없어 검증에는 `/tmp`의 Playwright Node와 Chromium을 사용했다. 일반 환경에서는 `node tests/expansion.test.js`, Playwright·Chromium 설치 후 `python tests/expansion.browser.py`로 실행한다.
 - AGENTS.md를 공통 지침 원본으로 두고 Claude·Gemini·Cursor·Copilot용 파일에서 연결한다. 자동 로딩 여부는 각 도구 설정에 따라 다르다.
 
-- 문서 위치: [PLANNING.md](PLANNING.md), [ARCHITECTURE.md](ARCHITECTURE.md) 및 [lesson/lesson2.md](lesson/lesson2.md) ~ [lesson/lesson6.md](lesson/lesson6.md)에 문서를 유지한다. 배포 확인 완료 주소:
+- 문서 위치: [PLANNING.md](PLANNING.md)는 기능별 기획의 목차이며, 세부 기획은 `planning/`, 구현·배포 구조는 [ARCHITECTURE.md](ARCHITECTURE.md), 회차별 기록은 `lesson/`에 유지한다. 배포 확인 완료 주소:
   - 아키텍처 문서: https://wkqkel9.github.io/my-agent/ARCHITECTURE.html
+  - 소개 기획: https://wkqkel9.github.io/my-agent/planning/introduction.html
+  - 영작 기획: https://wkqkel9.github.io/my-agent/planning/writing.html
+  - 필사 기획: https://wkqkel9.github.io/my-agent/planning/transcription.html
+  - 챗봇 기획: https://wkqkel9.github.io/my-agent/planning/chatbot.html
   - Lesson 2: https://wkqkel9.github.io/my-agent/lesson/lesson2.html
   - Lesson 3: https://wkqkel9.github.io/my-agent/lesson/lesson3.html
   - Lesson 4: https://wkqkel9.github.io/my-agent/lesson/lesson4.html
