@@ -57,7 +57,8 @@ const feedback=document.querySelector('#expansionFeedback'),expandSurface=docume
 const prompts=['나는 책을 읽는다.','나는 잠들기 전에 책을 읽는다.','나는 매일 밤 잠들기 전에 책을 읽는다.','나는 바쁜 날에도 매일 밤 잠들기 전에 책을 읽는다.'];
 const addedPhrases=['','잠들기 전에','매일 밤','바쁜 날에도'];
 const clauses=[['before bed','before going to bed','before i go to bed','before bedtime','before sleeping','before i sleep','prior to going to bed'],['every night','each night'],['even when i am busy','even on busy days','even if i am busy']];
-let round=0,running=false,deadline=0,interval=null,practiceState='idle',solved=0;
+let round=0,running=false,deadline=0,interval=null,practiceState='idle',solved=0,assessmentId=0,assessmentController=null;
+function cancelAssessment(){assessmentId++;if(assessmentController)assessmentController.abort();assessmentController=null;}
 function normalizeAnswer(value){return value.toLowerCase().replace(/[’‘]/g,"'").replace(/\bi'm\b/g,'i am').replace(/\bdon't\b/g,'do not').replace(/[.,!?;:]/g,' ').replace(/\s+/g,' ').trim();}
 function updatePrompt(meaning=''){
  const prompt=document.querySelector('#koreanPrompt');prompt.replaceChildren();
@@ -73,90 +74,6 @@ function acceptedAnswers(stage=round){
  for(let i=0;i<stage;i++)sets=sets.flatMap(parts=>clauses[i].map(clause=>[...parts,clause]));
  const answers=[...new Set(sets.flatMap(parts=>permutations(parts).map(order=>order.join(' '))))];answerCache.set(stage,answers);return answers;
 }
-function closeSpelling(a,b){
- if(a===b||Math.abs(a.length-b.length)>1)return false;
- if(a.length===b.length){const positions=[...a].map((char,i)=>char===b[i]?-1:i).filter(i=>i>=0);if(positions.length===1)return true;if(positions.length===2){const [i,j]=positions;return j===i+1&&a[i]===b[j]&&a[j]===b[i];}return false;}
- const longer=a.length>b.length?a:b,shorter=a.length>b.length?b:a;let i=0;while(i<shorter.length&&longer[i]===shorter[i])i++;return longer.slice(i+1)===shorter.slice(i);
-}
-// Read optional meanings independently of the core sentence, including a nearby
-// spelling mistake. Keep original offsets for highlighting; never expose corrections.
-function phraseFindings(text){
- const words=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)].flatMap(match=>normalizeAnswer(match[0]).split(' ').map(word=>({word,start:match.index,end:match.index+match[0].length})));
- const patterns=clauses.flatMap((group,index)=>group.map(phrase=>({parts:phrase.split(' '),group:index})));
- for(const phrase of ['going to bed','go to bed','before go to bed'])patterns.push({parts:phrase.split(' '),group:0,malformed:true});
- for(const phrase of ['yesterday','last night','every day','in the morning','at home','in the park','with my friends'])patterns.push({parts:phrase.split(' '),group:-1});
- const findings=[];
- for(let i=0;i<words.length;){
-  const matches=patterns.flatMap(pattern=>{
-   const chunk=words.slice(i,i+pattern.parts.length);if(chunk.length!==pattern.parts.length)return [];
-   const wrong=chunk.map((token,j)=>token.word===pattern.parts[j]?-1:j).filter(j=>j>=0);
-   if(wrong.length>1||wrong.some(j=>!closeSpelling(chunk[j].word,pattern.parts[j])))return [];
-   // An isolated real word is not sufficient evidence of a spelling mistake.
-   if(pattern.parts.length===1&&wrong.length)return [];
-   return [{...pattern,wrong,chunk}];
-  }).sort((a,b)=>a.wrong.length-b.wrong.length||b.parts.length-a.parts.length);
-  if(!matches.length){i++;continue;}
-  const match=matches[0];findings.push({...match,range:[match.chunk[0].start,match.chunk.at(-1).end]});i+=match.parts.length;
- }
- return findings;
-}
-function assessAnswer(text){
- const answer=normalizeAnswer(text);
- const result=(kind,key,label,hint,pattern=null,meaning='')=>({kind,key,label,hint,pattern,meaning});
- const ranged=(item,range)=>Object.assign(item,{range});
- if(!answer)return result('input','empty','입력 안내','영어 문장을 쓰고 Enter를 눌러주세요.');
- if(!/[a-z]/i.test(text))return result('input','language','입력 안내','문제의 뜻을 영어 문장으로 써보세요.');
- if(acceptedAnswers().includes(answer))return result('correct','accepted','맞아요','같은 뜻의 올바른 표현이에요.');
- const findings=phraseFindings(text),seen=new Set();
- // Priority 1: remove unnecessary meanings before correcting their spelling,
- // or checking grammar and omitted meanings in the rest of the sentence.
- for(const item of findings){
-  const repeated=seen.has(item.group);seen.add(item.group);
-  if(item.group<0||item.group>=round||repeated)return ranged(result('extra','extra','불필요한 표현',repeated?'같은 뜻이 반복됐어요. 표시한 표현이 필요한지 확인해보세요.':'문제에 없는 표현이 추가됐어요. 한글 문장에 필요한 내용만 남겨보세요.'),item.range);
- }
- // If all requested meanings are already covered, a remaining separate phrase
- // is additional content. Do not apply this heuristic to an unknown paraphrase
- // that may supply a required meaning.
- const core=/\bi\s+read\s+(?:a\s+book|the\s+books|the\s+book|books)\b/i.exec(text);
- if(core&&Array.from({length:round},(_,i)=>i).every(i=>seen.has(i))){
-  const covered=[[core.index,core.index+core[0].length],...findings.map(item=>item.range)];
-  const remaining=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)].filter(word=>!covered.some(([start,end])=>word.index>=start&&word.index<end));
-  if(remaining.length){const first=remaining[0];if(first.index<core.index||first.index>=core.index+core[0].length){let end=first.index+first[0].length;for(const word of remaining.slice(1)){if(/[^\s,]/.test(text.slice(end,word.index)))break;end=word.index+word[0].length;}return ranged(result('extra','extra','불필요한 표현','문제에 없는 표현이 추가됐어요. 한글 문장에 필요한 내용만 남겨보세요.'),[first.index,end]);}}
- }
- // Priority 2: correct one existing expression, without supplying its answer.
- if(/\bi (?:do not|never|cannot|can't|did not|didn't)\b/.test(answer))return result('error','negative','틀린 표현','문제는 부정하는 뜻이 아니에요. 표시한 표현의 뜻을 확인해보세요.',/\b(?:do not|don't|never|cannot|can't|did not|didn't)\b/i,'읽는다');
- if(/\bi (?:reads|reading|am read|am reading)\b/.test(answer))return result('error','verb','틀린 표현','반복하는 습관이에요. 주어에 맞는 동사의 현재형을 확인해보세요.',/\b(?:am reading|am read|reads|reading)\b/i,'읽는다');
- const different=answer.match(/\bi (buy|write|sell|watch|like)\b/);
- if(different)return result('error','meaning','틀린 표현','표시한 동사가 문제의 ‘읽는다’와 같은 뜻인지 확인해보세요.',new RegExp('\\b'+different[1]+'\\b','i'),'읽는다');
- if(/\bi read (?:a books|book)\b/.test(answer))return result('error','article','틀린 표현','책을 한 권으로 썼는지 여러 권으로 썼는지 확인하고, 관사와 명사의 수를 맞춰보세요.',/\b(?:a books|book)\b/i,'책을');
- const malformed=findings.find(item=>item.malformed);
- if(malformed)return ranged(result('error','before','틀린 표현','‘잠들기 전에’라는 시간 관계가 드러나도록 연결 표현과 그 뒤 동사의 형태를 확인해보세요.',null,'잠들기 전에'),malformed.range);
- const words=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)];
- // Check the core and each required phrase independently, so a missing phrase
- // does not hide a spelling error in another phrase.
- const spellingParts=[...acceptedAnswers(0),...clauses.slice(0,round).flat()];
- const exactWords=new Set();
- for(const phrase of spellingParts){const target=phrase.split(' ');for(let i=0;i<=words.length-target.length;i++)if(target.every((word,j)=>word===words[i+j][0].toLowerCase()))for(let j=0;j<target.length;j++)exactWords.add(i+j);}
- for(const phrase of spellingParts){
-  const target=phrase.split(' ');
-  for(let offset=0;offset<=words.length-target.length;offset++){
-   const chunk=words.slice(offset,offset+target.length);
-   const wrong=chunk.map((word,i)=>word[0].toLowerCase()===target[i]?-1:i).filter(i=>i>=0);
-   if(wrong.length===1){const i=wrong[0];if(!exactWords.has(offset+i)&&closeSpelling(chunk[i][0].toLowerCase(),target[i]))return ranged(result('typo','spelling','철자',`‘${chunk[i][0]}’의 철자를 확인해보세요.`),[chunk[i].index,chunk[i].index+chunk[i][0].length]);}
-  }
- }
- if(/\bbefore$/.test(answer))return result('incomplete','unfinished','빠진 표현','표시한 연결 표현 뒤에 언제인지 이어 써보세요.',/\bbefore\b/i,'잠들기 전에');
- // Priority 3: ask for one missing meaning, only after known errors are resolved.
- if(/^read (?:books|a book|the books|the book)\b/.test(answer))return result('incomplete','subject','빠진 표현','누가 읽는지 빠졌어요. ‘나는’에 해당하는 주어를 더해보세요.',null,'나는');
- if(/^i (?:books|a book|the books|the book)$/.test(answer))return result('incomplete','verb-missing','빠진 표현','무엇을 하는지 빠졌어요. ‘읽는다’에 해당하는 동사를 더해보세요.',null,'읽는다');
- if(answer==='i read')return result('incomplete','object','빠진 표현','무엇을 읽는지 빠졌어요. ‘책을’에 해당하는 내용을 더해보세요.',null,'책을');
- let rest=answer.replace(/\bi read (?:a book|the books|the book|books)\b/,'').trim();
- if(rest!==answer){
-  for(const item of findings)rest=rest.replace(normalizeAnswer(text.slice(...item.range)),'').replace(/\s+/g,' ').trim();
-  if(!rest){for(let i=0;i<round;i++)if(!seen.has(i))return result('incomplete','missing-'+i,'빠진 표현',`‘${addedPhrases[i+1]}’의 뜻이 빠졌어요. 해당 내용을 더해보세요.`,null,addedPhrases[i+1]);}
- }
- return result('review','unknown','표현 확인','이 표현은 아직 확실하게 판정하기 어려워요. 한글의 뜻과 쓴 문장의 뜻이 같은지 확인해보세요.');
-}
 function syncExpansionScroll(){expandHighlight.scrollTop=expandInput.scrollTop;expandHighlight.scrollLeft=expandInput.scrollLeft;}
 function clearFeedback(){feedback.hidden=true;expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();updatePrompt();}
 function highlightAnswer(result){
@@ -168,12 +85,13 @@ function highlightAnswer(result){
 function showFeedback(result){
  if(result.kind==='correct'){solved++;const message=result.hint;advanceSentence();if(practiceState!=='complete')expandStatus.textContent=`✓ ${message} 다음 문장에 60초가 주어져요.`;return;}
  feedback.dataset.kind=result.kind;document.querySelector('#feedbackTitle').textContent=result.label;document.querySelector('#feedbackReason').textContent=result.hint;feedback.hidden=false;updatePrompt(result.meaning);highlightAnswer(result);
- expandStatus.textContent='수정 후 Enter로 다시 확인 · 시간은 계속 흘러요.';
+ expandStatus.textContent=result.kind==='pending'?'AI 평가 중 · 시간은 계속 흘러요.':'수정 후 Enter로 다시 확인 · 시간은 계속 흘러요.';
 }
 function tick(){
  const remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));document.querySelector('#clockSeconds').textContent=String(remaining);clock.dataset.phase=remaining<=10?'urgent':remaining<=30?'warning':'normal';clock.dataset.running=String(running&&remaining>0);clock.setAttribute('aria-label',`이 문장 남은 시간 ${remaining}초`);if(!remaining)finish();
 }
 function beginSentence(){
+ cancelAssessment();
  clearInterval(interval);practiceState='writing';running=true;clearFeedback();expandInput.value='';expandInput.placeholder='영어 문장을 쓰고 Enter ↵';deadline=Date.now()+60000;expandStatus.textContent='Enter로 확인 · 정답이면 다음 문장으로 넘어가요.';tick();interval=setInterval(tick,250);expandInput.focus({preventScroll:true});
 }
 function startPractice(){round=0;solved=0;beginSentence();}
@@ -183,6 +101,7 @@ function advanceSentence(){
  round++;beginSentence();
 }
 function finish(){
+ cancelAssessment();
  clearInterval(interval);running=false;practiceState='timeout';clock.dataset.running='false';document.querySelector('#clockSeconds').textContent='0';
  expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();feedback.dataset.kind='timeout';document.querySelector('#feedbackTitle').textContent='시간 종료';document.querySelector('#feedbackReason').textContent='입력한 답은 그대로 남겨뒀어요. 한글 문장의 뜻과 비교해보세요.';feedback.hidden=false;updatePrompt();expandStatus.textContent='Enter를 누르거나 입력창을 눌러 다음으로 넘어가세요.';
 }
@@ -191,31 +110,31 @@ function submitExpansionAnswer(){
  if(practiceState==='timeout'){advanceSentence();return;}
  if(Date.now()>=deadline){finish();return;}
  const text=expandInput.value;
- const localResult=assessAnswer(text);
- showFeedback(localResult);
- if(localResult.kind!=='correct'&&typeof fetch==='function'){
-  try{
-   const controller=typeof AbortController==='function'?new AbortController():null;
-   const timeoutId=controller?setTimeout(()=>controller.abort(),2500):null;
-   fetch('https://writing-server.vercel.app/api/assess',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text:text,round:round,session_id:'web-session'}),
-    signal:controller?controller.signal:undefined
-   }).then(resp=>{
-    if(timeoutId)clearTimeout(timeoutId);
-    if(resp.ok)return resp.json();
-   }).then(aiResult=>{
-    if(aiResult&&aiResult.kind&&aiResult.hint&&expandInput.value===text&&running){
-     showFeedback(aiResult);
-    }
-   }).catch(()=>{});
-  }catch(e){}
+ cancelAssessment();
+ if(acceptedAnswers().includes(normalizeAnswer(text))){
+  showFeedback({kind:'correct',hint:'같은 뜻의 올바른 표현이에요.'});return;
  }
+ const requestId=assessmentId,requestRound=round;
+ showFeedback({kind:'pending',label:'평가 중',hint:'입력한 문장을 확인하고 있어요. 잠시 기다려주세요.'});
+ const controller=typeof AbortController==='function'?new AbortController():null;
+ assessmentController=controller;
+ const timeoutId=controller?setTimeout(()=>controller.abort(),25000):null;
+ const isCurrent=()=>assessmentId===requestId&&round===requestRound&&expandInput.value===text&&running&&practiceState==='writing'&&Date.now()<deadline;
+ const failed=()=>{if(isCurrent())showFeedback({kind:'unavailable',label:'평가 실패',hint:'평가 응답을 받지 못했어요. Enter를 눌러 다시 시도해주세요.'});};
+ Promise.resolve().then(()=>fetch('https://writing-server.vercel.app/api/assess',{
+  method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({text,round:requestRound,session_id:'web-session'}),
+  signal:controller?controller.signal:undefined
+ })).then(resp=>{if(!resp.ok)throw new Error('Assessment request failed');return resp.json();})
+ .then(aiResult=>{
+  if(!isCurrent())return;
+  if(!aiResult||!['correct','extra','error','typo','incomplete'].includes(aiResult.kind)||typeof aiResult.hint!=='string'||!aiResult.hint||typeof aiResult.label!=='string')throw new Error('Invalid assessment');
+  showFeedback(aiResult);
+ }).catch(failed).finally(()=>{if(timeoutId)clearTimeout(timeoutId);if(assessmentId===requestId)assessmentController=null;});
 }
 expandInput.addEventListener('focus',()=>{if(practiceState==='idle')startPractice();});
 expandInput.addEventListener('click',()=>{if(practiceState==='complete')startPractice();else if(practiceState==='timeout')advanceSentence();});
-expandInput.addEventListener('input',()=>{if(practiceState==='writing'){clearFeedback();expandStatus.textContent='Enter로 확인 · 남은 시간 안에 자유롭게 고쳐보세요.';}});
+expandInput.addEventListener('input',()=>{if(practiceState==='writing'){cancelAssessment();clearFeedback();expandStatus.textContent='Enter로 확인 · 남은 시간 안에 자유롭게 고쳐보세요.';}});
 expandInput.addEventListener('scroll',syncExpansionScroll);
 document.querySelector('#expandForm').addEventListener('submit',event=>{event.preventDefault();submitExpansionAnswer();});
 expandInput.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();submitExpansionAnswer();}});
