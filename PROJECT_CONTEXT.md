@@ -3,7 +3,7 @@
 작업 전 [AGENTS.md](AGENTS.md)와 [확정 기획](PLANNING.md)을 읽는다.
 
 - 앱: `index.html`의 영어 문장 확장·따라 쓰기 연습. 배포 설정은 `.github/workflows/pages.yml`.
-- 최신 확인 앱 배포: 커밋 `d46aab4`, GitHub Actions 실행 `44242854203` 성공. 주소: https://wkqkel9.github.io/my-agent/
+- 최신 확인 앱 배포: 커밋 `f2256c4`, GitHub Actions 실행 `44243913901` 성공. 주소: https://wkqkel9.github.io/my-agent/
 - 구현: 영작 입력 아래 액션 버튼 행을 제거했다. Enter 또는 모바일 키보드 전송으로 제출한다. 문장마다 60초, 정답 시 즉시 다음 문장, 시간 종료 후 내 답·한글 뜻 비교와 Enter·입력창 클릭으로 진행한다.
 - 피드백: 불필요한 표현 → 틀린 표현 → 빠진 표현 순서로 한 항목만 표시한다. 추가된 표현은 철자가 틀려도 전체를 먼저 표시하며, 수정 후 재제출하면 다시 판정한다. 정답·교정 표현·예시는 반복 제출·시간 종료에도 공개하지 않는다. 판정 불가 안내에도 예시를 넣지 않는다.
 - 현재 판정기의 미충족 사항: 규칙에서 벗어난 답에는 막연한 판정 불가 안내가 남아 있어 최신 기획을 충족하지 못한다. `I'm gonna read a book`도 이 경로에 들어간다. 현재 배포는 정적 HTML이며 문장 판정용 서버·AI 연결 구현은 없다.
@@ -13,4 +13,4 @@
 - 시스템 Node가 없어 검증에는 `/tmp`의 Playwright Node와 Chromium을 사용했다. 일반 환경에서는 `node tests/expansion.test.js`, Playwright·Chromium 설치 후 `python tests/expansion.browser.py`로 실행한다.
 - AGENTS.md를 공통 지침 원본으로 두고 Claude·Gemini·Cursor·Copilot용 파일에서 연결한다. 자동 로딩 여부는 각 도구 설정에 따라 다르다.
 
-- 문서 위치: 챗봇 기획을 [PLANNING.md](PLANNING.md)에 통합하고 [lesson.md](lesson.md)를 ask-once에서 옮겼다. 상단 Wiki는 wiki.md와 두 문서를 GitHub Pages 기본 Jekyll로 변환해 제공한다. 이번 Wiki 변경은 배포 전이다.
+- 문서 위치: 챗봇 기획을 [PLANNING.md](PLANNING.md)에 통합하고 [lesson.md](lesson.md)를 ask-once에서 옮겼다. 상단 Wiki는 wiki.md와 두 문서를 GitHub Pages 기본 Jekyll로 변환해 제공한다. Wiki·기획·Lesson 문서 배포와 공개 PC·모바일(1280·390·360px) 이동·렌더링·화면 너비 검증을 완료했다. 주소: https://wkqkel9.github.io/my-agent/wiki.html
