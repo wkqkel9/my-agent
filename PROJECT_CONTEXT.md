@@ -5,9 +5,10 @@
 - 앱: `index.html`의 영어 문장 확장·따라 쓰기 연습. 배포 설정은 `.github/workflows/pages.yml`.
 - 최신 확인 앱 배포: 커밋 `4f614c4`, GitHub Actions 실행 `44253918492` 성공. 주소: https://wkqkel9.github.io/my-agent/
 - 구현: 영작 입력 아래 액션 버튼 행을 제거했다. Enter 또는 모바일 키보드 전송으로 제출한다. 문장마다 60초, 정답 시 즉시 다음 문장, 시간 종료 후 내 답·한글 뜻 비교와 Enter·입력창 클릭으로 진행한다.
-- 프론트-로컬 AI 백엔드 하이브리드 연동: 엔터 제출 시 브라우저 정규식으로 즉각 피드백을 표시한 뒤, 로컬 AI 서버(`http://127.0.0.1:8000/api/assess`)가 실행 중이면 Gemini 3.8 Flash 평가 결과를 비동기로 수신해 정밀 피드백과 하이라이트 위치를 갱신한다. 서버 부재 시 정규식 피드백을 유지한다.
+- AI 평가 연동: 브라우저가 즉시 규칙 기반 피드백을 표시한 뒤 `https://writing-server.vercel.app/api/assess`를 호출한다. 서버는 Groq `openai/gpt-oss-120b`를 사용하며, 실패하면 브라우저 피드백을 유지한다.
 - 피드백: 불필요한 표현 → 틀린 표현 → 빠진 표현 순서로 한 항목만 표시한다. 추가된 표현은 철자가 틀려도 전체를 먼저 표시하며, 수정 후 재제출하면 다시 판정한다. 정답·교정 표현·예시는 반복 제출·시간 종료에도 공개하지 않는다. 판정 불가 안내에도 예시를 넣지 않는다.
-- 백엔드 분리: `/home/user/work/writing-server`에 독립 Git 저장소 구성. `main.py`(HTTP API), `evaluator.py`(Gemini 3.8 Flash 프롬프트 및 구조적 JSON), `db.py`(SQLite `data/agent.db` 이력 기록), `.env`(비밀 키 보관 및 .gitignore 제외)로 구성.
+- 백엔드: `/home/user/work/writing-server` 독립 저장소의 `master` 브랜치. `evaluator.py`(Groq 평가), `api/index.py`(Vercel HTTP API), `main.py`(로컬 HTTP API), `db.py`(로컬 SQLite). 비밀 파일은 Git에서 제외하며 Vercel Production의 `GROQ_API_KEY`, `GROQ_MODEL` 환경변수로 운영한다.
+- Groq 배포 확인: 서버 커밋 `1c1e166`, Vercel 배포 `dpl_DUWmQDjxCw63xVa3KRgvNvo3NyVi` READY. 공개 API HTTP 200·Groq 모델·정답/추가/오류/누락 판정·하이라이트 범위·CORS를 확인했다. 힌트는 한글로만 허용하고 교정 영어가 섞이면 오류로 처리해 브라우저 피드백을 유지한다.
 - 우선순위 변경 검증: 45개 판정 사례와 상태·입력 테스트, Chromium PC(1280px)·모바일(390px)의 불필요→틀림→누락 전환·표시 범위·반복 제출·시간 종료·재시작·가로 넘침·스크립트 오류 검증을 통과했다. 공개 사이트에서도 동일한 브라우저 테스트를 통과했고 HTTP 200 및 배포 HTML 일치를 확인했다.
 - 기능 안내 챗봇 소스: `/home/user/work/ask-once/faq.json`, `chatbot.js`. API 요청 없이 검토한 FAQ로 답한다. `build_chatbot.py --output /home/user/work/my-agent/chatbot.js`로 실행 파일을 생성하고, Pages에서 HTML과 함께 배포한다. 분류·하위 질문·뒤로 가기와 실행 중 기능 문맥을 제공한다. PC·모바일(1280·390·360px) 분류·하위 질문·후속 입력·이동·초기화·스크립트 오류 검증과 기존 영작 회귀 검증을 통과했다. 공개 사이트에서도 동일한 챗봇 검증을 통과했으며 HTML·JS의 HTTP 200과 로컬 파일 일치를 확인했다.
 - 시스템 Node가 없어 검증에는 `/tmp`의 Playwright Node와 Chromium을 사용했다. 일반 환경에서는 `node tests/expansion.test.js`, Playwright·Chromium 설치 후 `python tests/expansion.browser.py`로 실행한다.
