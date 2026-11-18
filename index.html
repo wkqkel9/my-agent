@@ -13,11 +13,11 @@
 .korean-prompt u{text-decoration-color:var(--orange);text-decoration-thickness:2px;text-underline-offset:6px;text-decoration-skip-ink:auto}.answer-feedback{margin-top:20px;padding:18px;border:1px solid #c7d9c3;border-left:4px solid #527247;border-radius:6px;background:#f3f7f0;font-size:13px;line-height:1.8}.answer-feedback[hidden]{display:none}.answer-feedback[data-kind="alternative"]{background:#eef4fb;border-color:#adc7e3;border-left-color:#416c9c}.answer-feedback[data-kind="error"]{background:#fff2ed;border-color:#e8b6a4;border-left-color:#bc4c32}.answer-feedback[data-kind="review"],.answer-feedback[data-kind="timeout"]{background:#fff8e9;border-color:#dfca94;border-left-color:#997526}.answer-feedback>p{margin:6px 0 14px}.answer-comparison{display:grid;gap:10px;margin-bottom:16px}.answer-comparison>div{padding:10px 12px;background:#ffffffb3;border-radius:4px;min-width:0}.answer-comparison small{color:#6d716a;font-size:11px}.answer-comparison p{font-family:'DM Sans',sans-serif;letter-spacing:0;overflow-wrap:anywhere;margin:4px 0 0}.clock[data-urgent="true"]{color:#b53721;font-weight:700}.expand-buttons{flex-wrap:wrap}@media(max-width:640px){#expandForm .demo-foot{align-items:flex-start;flex-direction:column}}
 /* Keep writing and review in one stable workspace. */
 #expansion .korean-prompt{height:96px;padding-top:12px;overflow:auto}
-.expansion-stage{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:390px}
+.expansion-stage{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:220px}
 .expansion-stage>#expandForm,.expansion-stage>.answer-feedback{grid-area:1 / 1;min-width:0;min-height:0;margin:0}
 .expansion-stage>#expandForm{display:flex;flex-direction:column;gap:14px}
 .expansion-stage>#expandForm[hidden]{display:none}
-#expandInput{flex:1;min-height:0;resize:none}
+#expandInput{flex:none;height:83px;min-height:83px;resize:none}
 #expandForm .demo-foot{margin-top:0;display:flex;flex-direction:column;align-items:stretch;gap:12px}
 #expandStatus{height:54px;overflow:auto;font-size:12px;line-height:1.5}
 #expandForm .expand-buttons{display:flex;justify-content:space-between;gap:8px}
@@ -28,7 +28,7 @@
 #feedbackTitle:focus{outline:none}
 #nextExpansion{flex:none;align-self:stretch;justify-content:center;min-height:40px}
 .answer-comparison{margin-bottom:0}
-@media(max-width:640px){.expansion-stage{grid-template-rows:430px}#expansion .korean-prompt{height:110px}}
+@media(max-width:640px){.expansion-stage{grid-template-rows:240px}#expansion .korean-prompt{height:110px}}
 </style></head>
 <body><div class="wrap"><nav aria-label="주 메뉴"><a class="brand" href="#" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a><div class="links"><a href="#features">학습방법</a><a href="#expansion">문장확장</a><a href="#copywriting">필사</a></div></nav>
 <main><section class="hero reveal"><div class="eyebrow">A little practice. Your own English.</div><div class="hero-top"><h1>영어를 읽는 사람에서,<br><span>내 문장을 쓰는 사람으로.</span></h1><div class="hero-aside"><p>시간 안에 한 문장을 더 넓게.<br>좋은 문장은 한 글자씩 더 깊게.<br>영어가 내 것이 되는 두 가지 연습.</p><div class="hero-actions"><a class="button" href="#expansion">문장 확장하기 <span>↗</span></a><a class="outline-button" href="#copywriting">필사하기 ↗</a></div><div class="hero-note"><span>✓</span> 가입 없이, 아래에서 가볍게 체험하세요</div></div></div>
