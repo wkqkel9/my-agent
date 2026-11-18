@@ -59,17 +59,7 @@
                 </details>
               </li>
               <li><a href="{{ '/ARCHITECTURE.html' | relative_url }}" {% if current_name == 'ARCHITECTURE.md' %}aria-current="page"{% endif %}>ARCHITECTURE.md</a></li>
-              <li>
-                <details class="lesson-tree" open>
-                  <summary><span>lesson</span><span class="tree-chevron" aria-hidden="true"></span></summary>
-                  <ul class="tree-children">
-                    {% assign lessons = site.pages | where: 'docs_group', 'lesson' | sort: 'lesson_order' %}
-                    {% for lesson in lessons %}
-                    <li><a href="{{ lesson.url | relative_url }}" {% if page.path == lesson.path %}aria-current="page"{% endif %}>{{ lesson.name }}</a></li>
-                    {% endfor %}
-                  </ul>
-                </details>
-              </li>
+              <li><a href="{{ '/LESSONS.html' | relative_url }}" {% if current_name == 'LESSONS.md' %}aria-current="page"{% endif %}>LESSONS.md</a></li>
             </ul>
           </div>
         </nav>

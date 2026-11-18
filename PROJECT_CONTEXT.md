@@ -19,17 +19,12 @@
 - 로컬 Docs 미리보기는 Homebrew Ruby와 프로젝트 내부 `vendor/bundle`을 사용하는 `bin/docs`로 실행한다. 주소는 `http://127.0.0.1:4000/my-agent/docs.html`이며 설치 패키지·빌드 결과·Bundler 로컬 설정은 Git에서 제외한다.
 - AGENTS.md를 공통 지침 원본으로 두고 Claude·Gemini·Cursor·Copilot용 파일에서 연결한다. 자동 로딩 여부는 각 도구 설정에 따라 다르다.
 
-- 문서 위치: [PLANNING.md](PLANNING.md)는 기능별 기획의 목차이며, 세부 기획은 `planning/`, 구현·배포 구조는 [ARCHITECTURE.md](ARCHITECTURE.md), 회차별 기록은 `lesson/`에 유지한다. 배포 확인 완료 주소:
+- 문서 위치: [PLANNING.md](PLANNING.md)는 기능별 기획의 목차이며, 세부 기획은 `planning/`, 구현·배포 구조는 [ARCHITECTURE.md](ARCHITECTURE.md), Lesson 기술 정리는 [LESSONS.md](LESSONS.md)에 유지한다. 현재 공개 주소는 기존 배포 상태이며 이번 문서 통합은 로컬에만 반영했다.
   - 아키텍처 문서: https://wkqkel9.github.io/my-agent/ARCHITECTURE.html
   - 소개 기획: https://wkqkel9.github.io/my-agent/planning/introduction.html
   - 영작 기획: https://wkqkel9.github.io/my-agent/planning/writing.html
   - 필사 기획: https://wkqkel9.github.io/my-agent/planning/transcription.html
   - 챗봇 기획: https://wkqkel9.github.io/my-agent/planning/chatbot.html
-  - Lesson 2: https://wkqkel9.github.io/my-agent/lesson/lesson2.html
-  - Lesson 3: https://wkqkel9.github.io/my-agent/lesson/lesson3.html
-  - Lesson 4: https://wkqkel9.github.io/my-agent/lesson/lesson4.html
-  - Lesson 5: https://wkqkel9.github.io/my-agent/lesson/lesson5.html
-  - Lesson 6: https://wkqkel9.github.io/my-agent/lesson/lesson6.html
 
 
 - 문서 배포: `.github/workflows/pages.yml`에 `ARCHITECTURE.md`를 포함하며, 렌더링 후 `docs.html`·`PLANNING.html`·`ARCHITECTURE.html`의 생성 여부를 검사한다. `ARCHITECTURE.md`는 현재 Pages → Vercel → Groq 흐름을 설명한다.
