@@ -31,7 +31,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir _site
-          cp index.html _site/index.html
+          cp index.html chatbot.js _site/
           touch _site/.nojekyll
 
       - name: Upload site
