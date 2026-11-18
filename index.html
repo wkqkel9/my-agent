@@ -9,39 +9,23 @@
 .copy-surface{position:relative;margin:26px 0 14px;border-radius:5px;background:#f9f7f3;min-height:155px}.copy-surface:focus-within{outline:2px solid #eea18b;outline-offset:4px}.copy-surface .copy-target,.copy-surface #copyInput{font-family:'Courier New',monospace;font-size:25px;line-height:1.7;letter-spacing:0;font-weight:400;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all;tab-size:4;padding:18px;margin:0;border:0;border-radius:5px;box-sizing:border-box}.copy-surface .copy-target{color:#b9bdb1;min-height:155px;pointer-events:none}.copy-surface #copyInput{position:absolute;inset:0;width:100%;height:100%;min-height:0;resize:none;background:transparent;color:transparent;caret-color:var(--orange);-webkit-text-fill-color:transparent;overflow:hidden;outline:none;box-shadow:none}.copy-surface #copyInput::selection{background:#eea18b40}.copy-target .typed-correct{color:var(--ink)}.copy-target .typed-wrong{color:#bc4c40;background:#f4ded8;text-decoration:underline;text-decoration-color:#bc4c40;text-underline-offset:5px}.copy-hint{font-size:10px;line-height:1.8;color:var(--muted);margin-bottom:16px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}@media(max-width:640px){.copy-surface .copy-target,.copy-surface #copyInput{font-size:22px;padding:14px}}
 
 .links{font-size:13px}.expansion-art{background:#eee9e1}.art-label{color:#8b7569}.timer-tag{border-color:#d7b6a7;color:#bc674a}.art-bottom{border-color:#dbd2c5;color:#897969}.stacked-sentences{margin:29px 0 26px;padding-right:28px}.sentence-card{display:flex;align-items:center;gap:16px;background:#fffdf8;border:1px solid #ddd5cb;border-radius:6px;padding:13px 16px;margin-bottom:9px;box-shadow:0 5px 14px #52433207;font-family:Georgia,serif;font-size:22px;letter-spacing:-.5px}.sentence-card small{font-family:Arial,'Malgun Gothic',sans-serif;font-size:9px;color:#998c80;letter-spacing:0;min-width:37px}.sentence-card b{font-weight:400}.sentence-card:nth-child(1){transform:rotate(-2deg)}.sentence-card:nth-child(2){margin-left:15px;transform:rotate(1deg)}.sentence-card:nth-child(3){margin-left:30px;transform:rotate(-1deg)}.sentence-card:nth-child(4){margin-left:45px;margin-right:-28px;background:#f3b59f;border-color:#e8a48c;transform:rotate(2deg)}.sentence-card:nth-child(4) small{color:#8d503b}.practice-stack{display:flex;flex-direction:column;gap:7px;margin-bottom:22px}.practice-row{background:#f6f3ee;border:1px solid #e7e1d8;border-radius:4px;padding:10px 13px;font-family:Georgia,serif;font-size:19px;line-height:1.6;letter-spacing:-.3px}.practice-row:last-child{background:#fce9e0;border-color:#ecc7b7}.practice-row mark{background:#f5b69e;color:var(--ink);padding:1px 3px}.practice-row small{font-family:Arial,sans-serif;font-size:9px;color:#ac8c7b;margin-right:10px}.clock{color:var(--orange)}.copy-surface .copy-target{color:#b9b5ae}.copy-target .typed-correct{color:var(--ink)}@media(max-width:640px){.links>a:not(.nav-cta){display:inline}.links{gap:14px;font-size:11px}.stacked-sentences{padding-right:17px}.sentence-card{font-size:20px;padding:12px;gap:10px}.sentence-card:nth-child(4){margin-left:30px;margin-right:-17px}.sentence-card:nth-child(3){margin-left:20px}.sentence-card:nth-child(2){margin-left:10px}.practice-row{font-size:18px}}
-.korean-prompt{font-size:22px;line-height:1.7;margin:12px 0 8px;word-break:keep-all}.round-label{font-size:10px;color:var(--orange);letter-spacing:1px;margin-bottom:18px}.expand-buttons{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}#submitExpansion{background:var(--orange)}button:disabled{opacity:.4;cursor:default}.practice-stack:empty{display:none}.practice-stack{margin-top:22px}@media(max-width:640px){#expandForm .demo-foot{flex-direction:column;align-items:stretch}.expand-buttons{justify-content:flex-start}.korean-prompt{font-size:20px}.sentence-card{font-size:18px}}
-.korean-prompt u{text-decoration-color:var(--orange);text-decoration-thickness:2px;text-underline-offset:6px;text-decoration-skip-ink:auto}.answer-feedback{margin-top:20px;padding:18px;border:1px solid #c7d9c3;border-left:4px solid #527247;border-radius:6px;background:#f3f7f0;font-size:13px;line-height:1.8}.answer-feedback[hidden]{display:none}.answer-feedback[data-kind="alternative"]{background:#eef4fb;border-color:#adc7e3;border-left-color:#416c9c}.answer-feedback[data-kind="error"]{background:#fff2ed;border-color:#e8b6a4;border-left-color:#bc4c32}.answer-feedback[data-kind="review"],.answer-feedback[data-kind="timeout"]{background:#fff8e9;border-color:#dfca94;border-left-color:#997526}.answer-feedback>p{margin:6px 0 14px}.answer-comparison{display:grid;gap:10px;margin-bottom:16px}.answer-comparison>div{padding:10px 12px;background:#ffffffb3;border-radius:4px;min-width:0}.answer-comparison small{color:#6d716a;font-size:11px}.answer-comparison p{font-family:'DM Sans',sans-serif;letter-spacing:0;overflow-wrap:anywhere;margin:4px 0 0}.clock[data-urgent="true"]{color:#b53721;font-weight:700}.expand-buttons{flex-wrap:wrap}@media(max-width:640px){#expandForm .demo-foot{align-items:flex-start;flex-direction:column}}
-/* Keep the answer visible while reviewing short feedback above it. */
-#expansion .korean-prompt{min-height:48px;padding-top:8px}
-.expansion-stage{min-width:0}
-#expandForm{display:flex;flex-direction:column;gap:14px}
-.expansion-feedback-slot{min-height:68px;margin-bottom:12px}
-.answer-feedback{margin:0;padding:0;border:0;background:none;font-size:12px;line-height:1.6}
-.answer-feedback[data-kind]{background:none;border:0}
-.answer-feedback strong{font-weight:600}
-.answer-feedback>p{margin:3px 0 0;color:var(--muted)}
-.answer-feedback[data-kind="error"] strong{color:#bc4c40}
-.answer-feedback[data-kind="correct"] strong,.answer-feedback[data-kind="alternative"] strong{color:#4c7541}
-.expand-surface{position:relative;height:83px;background:#fcfcfa;border:1px solid #dedfd7;border-radius:4px;overflow:hidden}
+.korean-prompt{font-size:22px;line-height:1.7;min-height:48px;padding-top:8px;margin:12px 0 8px;word-break:keep-all}.round-label{font-size:10px;color:var(--orange);letter-spacing:1px;margin-bottom:18px}
+.korean-prompt u{text-decoration-color:var(--orange);text-decoration-thickness:2px;text-underline-offset:6px}.korean-prompt mark{background:#fff0ca;color:inherit;border-radius:3px;padding:2px 3px;border-bottom:2px solid #997526}
+#expandForm{display:flex;flex-direction:column;gap:10px;min-width:0}
+.expand-surface{position:relative;height:96px;background:#fcfcfa;border:1px solid var(--line);border-radius:5px;overflow:hidden}
 .expand-surface:focus-within{outline:2px solid #eea18b;outline-offset:3px}
-#expandHighlight,#expandInput{font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:14px;line-height:1.7;letter-spacing:-.045em;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;tab-size:8;padding:13px;margin:0;border:0;border-radius:0;width:100%;height:100%;min-height:0}
+#expandHighlight,#expandInput{box-sizing:border-box;font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:16px;line-height:1.7;letter-spacing:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;tab-size:8;padding:13px;margin:0;border:0;border-radius:0;width:100%;height:100%;min-height:0}
 #expandHighlight{position:absolute;inset:0;overflow:hidden;pointer-events:none;color:var(--ink)}
-#expandHighlight .typed-wrong{color:#bc4c40;background:#f4ded8;text-decoration:underline;text-underline-offset:5px}
+#expandHighlight .typed-wrong{color:#a93525;background:#f9e1d9;text-decoration:underline;text-underline-offset:5px}
+#expandHighlight .typed-typo{color:#805b13;background:#fff0ca;text-decoration:underline;text-underline-offset:5px}
 #expandInput{position:relative;display:block;resize:none;background:transparent;color:var(--ink);opacity:1}
 .expand-surface[data-reviewed="true"] #expandInput{color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--orange)}
 #expandInput:focus-visible{outline:none}
-#expandForm .demo-foot{margin-top:0;display:flex;flex-direction:column;align-items:stretch;gap:12px}
-#expandStatus{min-height:32px;font-size:11px;line-height:1.5}
-#expandForm .expand-buttons{display:flex;justify-content:space-between;gap:8px}
-#nextExpansion{justify-content:center}
-#nextExpansion[hidden],#submitExpansion[hidden],#expansionHint[hidden]{display:none}
-.answer-feedback[data-kind="error"]{background:#fff2ed}
-.answer-feedback[data-kind="typo"],.answer-feedback[data-kind="incomplete"],.answer-feedback[data-kind="review"]{background:#fff8e9}
-.answer-feedback[data-kind="correct"],.answer-feedback[data-kind="alternative"]{background:#f0f6ed}
-.answer-feedback{padding:8px 11px;border-radius:5px}
-.answer-feedback[data-kind="typo"] strong,.answer-feedback[data-kind="incomplete"] strong{color:#997526}
-#expandForm .expand-buttons{flex-wrap:wrap}
-#expansionHint{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.expansion-feedback-slot{min-height:48px}
+.answer-feedback{font-size:12px;line-height:1.7;padding:9px 11px;border-radius:5px;background:#f4f2eb;overflow-wrap:anywhere}
+.answer-feedback[hidden]{display:none}.answer-feedback strong{font-weight:600;margin-right:8px}.answer-feedback[data-kind="error"]{background:#fff2ed}.answer-feedback[data-kind="error"] strong{color:#a93525}.answer-feedback[data-kind="typo"],.answer-feedback[data-kind="incomplete"]{background:#fff8e9}.answer-feedback[data-kind="typo"] strong,.answer-feedback[data-kind="incomplete"] strong{color:#805b13}
+#expandStatus{min-height:34px;font-size:11px;line-height:1.6;color:var(--muted)}
+@media(max-width:640px){.korean-prompt{font-size:20px}.sentence-card{font-size:18px}}
 /* Stopwatch countdown: calm, warning, then urgent. */
 #clock{position:relative;display:inline-grid;place-items:center;flex:none;width:46px;height:46px;margin-top:9px;border:2px solid currentColor;border-radius:50%;color:var(--ink);font-size:19px;font-weight:700;line-height:1;letter-spacing:-.5px;font-variant-numeric:tabular-nums;transition:color .3s ease;transform-origin:50% 10%}
 #clock::before{content:'';position:absolute;width:14px;height:5px;top:-9px;left:50%;transform:translateX(-50%);border-radius:2px;background:currentColor;box-shadow:0 4px 0 -1px currentColor}
@@ -54,18 +38,12 @@
 @keyframes clock-urgent-shake{0%,100%{transform:rotate(0)}12%,36%,60%,84%{transform:rotate(-11deg)}24%,48%,72%{transform:rotate(11deg)}}
 @media(prefers-reduced-motion:reduce){#clock{animation:none!important;transition:none}}
 
-/* Feedback connects meaning, location, and explanation. */
-.korean-prompt mark{background:#fff0ca;color:inherit;border-radius:3px;padding:2px 3px;border-bottom:2px solid #997526}
-.prompt-cue{display:block;font-size:11px;color:#88631d;line-height:1.6;margin-top:6px}
-.answer-feedback details{margin-top:5px}.answer-feedback summary{cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:11px}.answer-feedback details p{margin:6px 0;line-height:1.7}
-.expand-surface .typed-typo{color:#88631d;background:#fff0ca;text-decoration:underline;text-underline-offset:5px}
-.practice-review{margin-top:18px;padding:14px;background:#f0f4ed;border-radius:5px;font-size:12px;line-height:1.8}.practice-review[hidden]{display:none}.practice-review p{margin:8px 0}.practice-review summary{cursor:pointer;font-weight:600}.practice-review small{display:block;color:var(--muted)}
 </style></head>
 <body><div class="wrap"><nav aria-label="주 메뉴"><a class="brand" href="#" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a><div class="links"><a href="#features">학습방법</a><a href="#expansion">문장확장</a><a href="#copywriting">필사</a></div></nav>
 <main><section class="hero reveal"><div class="eyebrow">A little practice. Your own English.</div><div class="hero-top"><h1>영어를 읽는 사람에서,<br><span>내 문장을 쓰는 사람으로.</span></h1><div class="hero-aside"><p>시간 안에 한 문장을 더 넓게.<br>좋은 문장은 한 글자씩 더 깊게.<br>영어가 내 것이 되는 두 가지 연습.</p><div class="hero-actions"><a class="button" href="#expansion">문장 확장하기 <span>↗</span></a><a class="outline-button" href="#copywriting">필사하기 ↗</a></div><div class="hero-note"><span>✓</span> 가입 없이, 아래에서 가볍게 체험하세요</div></div></div>
 <div class="workbench"><div class="expansion-art"><div class="art-label"><span>01 / 문장 확장</span><span class="timer-tag">◷ &nbsp; 문장당 01:00</span></div><div class="stacked-sentences" aria-label="영작할 때마다 조금씩 길어지는 문장"><div class="sentence-card"><small>01</small><span>I read books.</span></div><div class="sentence-card"><small>02</small><span>I read books <b>before bed.</b></span></div><div class="sentence-card"><small>03</small><span>I read books before bed<br><b>every night.</b></span></div><div class="sentence-card"><small>04</small><span>I read books before bed every night,<br><b>even when I am busy.</b></span></div></div><div class="art-bottom"><span>작은 표현에, 나의 이야기를 더하는 시간.</span><span>↗</span></div></div><div class="copy-art"><div class="art-label"><span>02 / 필사</span><span>한 문장에 집중하기</span></div><p class="quote">Small steps.<br>Steady practice.<br><em>Your own words.</em></p><div class="copy-caption">작게 시작하고, 꾸준히 연습하고, 내 문장으로.</div><div class="copy-ghost">Small steps. Steady practice.<span class="caret"></span></div></div></div><div class="strip"><span>TWO WAYS TO MAKE ENGLISH YOURS</span><span>EXPAND YOUR THOUGHTS. &nbsp; COLLECT GOOD WORDS.</span></div></section>
 <section id="features"><div class="intro"><div><div class="eyebrow">The practice</div><h2>두 가지 연습, 서로 다른 방식.</h2></div><p>스스로 문장을 만들고, 좋은 문장을 따라 쓰고.<br>문장 확장과 필사, 원하는 연습을 골라보세요.</p></div>
-<article class="feature" id="expansion"><div class="feature-copy"><span class="number">01 — 문장 확장</span><h3>시간은 짧게.<br>문장은 조금 더 길게.</h3><p>한글 문장을 보고 빈칸에 영어로 써보세요. 문장마다 60초 동안 영작하고, 틀린 부분은 고쳐 쓰고, 힌트로 표현을 익혀보세요. 정답이면 바로 다음 문장을 시작해요. 조금씩 길어지는 문장을 반복해서 영작하는 연습이에요.</p><div class="tags"><span>문장마다 60초</span><span>한글 보기 → 영작 → 더 긴 문장</span></div></div><div class="demo"><div class="demo-head"><span>문장 확장 · 체험</span><span class="clock" id="clock" role="timer" aria-label="이 문장 남은 시간 60초" data-phase="normal" data-running="false"><span id="clockSeconds" aria-hidden="true">60</span></span></div><div class="prompt">아래 한글 문장을 영어로 써보세요.</div><div class="korean-prompt" id="koreanPrompt">나는 책을 읽는다.</div><div class="round-label" id="roundLabel">01 / 04</div><div class="expansion-feedback-slot"><section id="expansionFeedback" class="answer-feedback" aria-label="영작 결과" aria-live="polite" hidden><strong id="feedbackTitle"></strong><p id="feedbackReason"></p><details id="feedbackDetails"><summary>이유 보기 · 시간은 계속 흘러요</summary><p id="feedbackExplanation"></p></details></section></div><div class="expansion-stage"><form id="expandForm"><div class="expand-surface" id="expandSurface"><div id="expandHighlight" aria-hidden="true"></div><textarea id="expandInput" aria-label="한글 문장을 영어로 쓰기" aria-describedby="expansionFeedback" placeholder="여기를 누르거나 연습 시작을 눌러주세요." readonly></textarea></div><div class="demo-foot"><span class="status" id="expandStatus" role="status">문장마다 60초 · 정답이면 바로 다음 문장으로 넘어가요.</span><div class="expand-buttons"><button type="button" class="button small-button" id="startTimer">연습 시작 ↗</button><button type="submit" class="button small-button" id="submitExpansion" disabled>입력 완료 ↵</button><button type="button" class="button small-button" id="expansionHint" hidden>힌트 보기</button><button type="button" class="button small-button" id="nextExpansion" hidden>다음 문장 · 60초 시작 →</button></div></div></form><details id="practiceReview" class="practice-review" hidden><summary>이번 연습의 표현 돌아보기</summary><div id="practiceReviewItems"></div></details></div></div></article>
+<article class="feature" id="expansion"><div class="feature-copy"><span class="number">01 — 문장 확장</span><h3>시간은 짧게.<br>문장은 조금 더 길게.</h3><p>한글 문장을 보고 영어 문장 전체를 써보세요. 문장마다 60초, Enter로 답을 확인해요. 고칠 부분은 짧은 힌트로 알려드려요. 정답이면 조금 더 긴 문장으로 이어져요.</p><div class="tags"><span>문장마다 60초</span><span>한글 보기 → 영작 → 더 긴 문장</span></div></div><div class="demo"><div class="demo-head"><span>문장 확장 · 체험</span><span class="clock" id="clock" role="timer" aria-label="이 문장 남은 시간 60초" data-phase="normal" data-running="false"><span id="clockSeconds" aria-hidden="true">60</span></span></div><div class="prompt">아래 한글 문장을 영어로 써보세요.</div><div class="korean-prompt" id="koreanPrompt">나는 책을 읽는다.</div><div class="round-label" id="roundLabel">01 / 04</div><form id="expandForm"><div class="expand-surface" id="expandSurface"><div id="expandHighlight" aria-hidden="true"></div><textarea id="expandInput" aria-label="한글 문장을 영어로 쓰기" aria-describedby="expansionFeedback expandStatus" placeholder="여기를 누르면 60초 연습이 시작돼요." enterkeyhint="send" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" maxlength="500" rows="3"></textarea></div><div class="expansion-feedback-slot"><section id="expansionFeedback" class="answer-feedback" aria-label="영작 피드백" aria-live="polite" hidden><strong id="feedbackTitle"></strong><span id="feedbackReason"></span></section></div><span class="status" id="expandStatus" role="status">입력창을 눌러 시작 · Enter로 확인</span></form></div></article>
 <article class="feature" id="copywriting"><div class="feature-copy"><span class="number">02 — 필사</span><h3>좋은 문장을,<br>내 손으로 한 번 더.</h3><p>눈으로 지나쳤던 단어와 문장의 흐름을 천천히 따라 써보세요. 서두르지 않고, 문장 하나를 온전히 들여다보는 시간이에요.</p><div class="tags"><span>한 문장씩 차분하게</span><span>따라 쓰며 익히는 표현</span></div></div><div class="demo"><div class="demo-head"><span>필사 · 체험 문장</span><span id="copyCount">01 / 03</span></div><div class="copy-surface"><div class="copy-target" id="copyTarget" aria-hidden="true"></div><textarea id="copyInput" aria-label="희미하게 표시된 영어 문장 따라 쓰기" aria-describedby="copyReference copyHint" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea></div><p class="sr-only" id="copyReference">Every small step is a new beginning.</p><div class="translation" id="translation">작은 한 걸음마다 새로운 시작이 있어요.</div><div class="copy-hint" id="copyHint">문장 위를 눌러 입력하세요. 흐린 글자가 내 글씨로 채워집니다.</div><div class="demo-foot"><span class="status" id="copyStatus" role="status">0 / 36자 · 마침표까지 천천히 써보세요.</span><button class="button small-button" id="nextQuote">다음 문장 <span>→</span></button></div></div></article></section>
 <section class="closing"><div class="eyebrow">Make it yours</div><h2>오늘의 한 문장이,<br>내일의 내 영어가 되도록.</h2><p>거창한 시작 대신, 지금 한 문장부터 써보세요.</p><a class="button" href="#expansion">첫 문장 시작하기 <span>↗</span></a></section></main><footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><span>© 2026 typing</span></footer></div>
 <button class="chat-fab" id="chatFab" aria-label="학습 도우미 챗봇 열기" aria-expanded="false" aria-controls="chatPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-4 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 9h10M7 13h7"/></svg></button>
@@ -75,101 +53,115 @@ const chatFab=document.querySelector('#chatFab'),chatPanel=document.querySelecto
 function setChat(open){chatPanel.hidden=!open;chatFab.setAttribute('aria-expanded',String(open));(open?chatInput:chatFab).focus();}
 chatFab.addEventListener('click',()=>setChat(chatPanel.hidden));document.querySelector('#closeChat').addEventListener('click',()=>setChat(false));document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!chatPanel.hidden)setChat(false);});
 function chatMessage(text,user=false){const el=document.createElement('div');el.className='message'+(user?' user':'');el.textContent=text;chatLog.append(el);chatLog.scrollTop=chatLog.scrollHeight;}
-function ask(question){if(!question.trim())return;chatMessage(question,true);chatInput.value='';let reply='이 도우미는 이용 방법 FAQ를 안내해요. 아래에서 문장 확장 또는 필사 방법을 선택해보세요.';if(/필사|따라/.test(question))reply='필사는 좋은 문장을 그대로 따라 쓰는 별도 연습이에요.\n‘02 — 필사’에서 영어 문장을 입력하면 일치 여부를 확인할 수 있어요. 대소문자와 띄어쓰기, 마침표까지 맞춰보세요. 시간 제한 없이 연습하고 ‘다음 문장’으로 넘어갈 수 있어요.';else if(/확장|시간|60|타이머|패턴|어순/.test(question))reply='문장 확장은 제한 시간 안에 내 문장을 만드는 연습이에요.\n‘연습 시작’을 누르고 한글 문장을 영어로 입력해보세요. 각 문장마다 60초가 주어져요. Enter 또는 입력 완료로 답을 확인해보세요. 정답이나 같은 뜻의 허용된 표현이면 바로 다음 문장으로 넘어가며 새로운 60초가 시작돼요. 오답은 남은 시간 안에 수정할 수 있어요. 마지막 문장을 맞히면 연습이 완료돼요.';chatMessage(reply);}
+function ask(question){if(!question.trim())return;chatMessage(question,true);chatInput.value='';let reply='이 도우미는 이용 방법 FAQ를 안내해요. 아래에서 문장 확장 또는 필사 방법을 선택해보세요.';if(/필사|따라/.test(question))reply='필사는 좋은 문장을 그대로 따라 쓰는 별도 연습이에요.\n‘02 — 필사’에서 영어 문장을 입력하면 일치 여부를 확인할 수 있어요. 대소문자와 띄어쓰기, 마침표까지 맞춰보세요. 시간 제한 없이 연습하고 ‘다음 문장’으로 넘어갈 수 있어요.';else if(/확장|시간|60|타이머|패턴|어순/.test(question))reply='문장 확장은 제한 시간 안에 내 문장을 만드는 연습이에요.\n입력창을 누르고 한글 문장을 영어로 입력해보세요. 각 문장마다 60초가 주어져요. Enter 또는 키보드의 전송 키로 답을 확인해보세요. 정답이나 같은 뜻의 허용된 표현이면 바로 다음 문장으로 넘어가며 새로운 60초가 시작돼요. 오답은 남은 시간 안에 수정할 수 있어요. 시간이 끝나면 내 답과 예시를 비교하고 Enter 또는 입력창을 눌러 다음으로 넘어가세요. 마지막 문장을 맞히면 연습이 완료돼요.';chatMessage(reply);}
 document.querySelector('#chatForm').addEventListener('submit',e=>{e.preventDefault();ask(chatInput.value);});document.querySelectorAll('[data-question]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.question)));
 
-const startButton=document.querySelector('#startTimer'),expandInput=document.querySelector('#expandInput'),clock=document.querySelector('#clock'),expandStatus=document.querySelector('#expandStatus'),submitExpansion=document.querySelector('#submitExpansion');
+const expandInput=document.querySelector('#expandInput'),clock=document.querySelector('#clock'),expandStatus=document.querySelector('#expandStatus');
+const feedback=document.querySelector('#expansionFeedback'),expandSurface=document.querySelector('#expandSurface'),expandHighlight=document.querySelector('#expandHighlight');
 const prompts=['나는 책을 읽는다.','나는 잠들기 전에 책을 읽는다.','나는 매일 밤 잠들기 전에 책을 읽는다.','나는 바쁜 날에도 매일 밤 잠들기 전에 책을 읽는다.'];
-let interval=null,deadline=0,running=false,round=0,hintLevel=0;
-let practiceNotes=[];
-const reviewPanel=document.querySelector('#practiceReview');
-const addedPhrases=['','잠들기 전에','매일 밤','바쁜 날에도'];
-function updatePrompt(){const prompt=document.querySelector('#koreanPrompt');prompt.replaceChildren();const added=addedPhrases[round];if(added){const position=prompts[round].indexOf(added);const underline=document.createElement('u');underline.textContent=added;prompt.append(document.createTextNode(prompts[round].slice(0,position)),underline,document.createTextNode(prompts[round].slice(position+added.length)));}else{prompt.textContent=prompts[round];}document.querySelector('#roundLabel').textContent=`0${round+1} / 04`;}
-const feedback=document.querySelector('#expansionFeedback'),nextExpansion=document.querySelector('#nextExpansion');
 const references=['I read books.','I read books before bed.','I read books before bed every night.','I read books before bed every night, even when I am busy.'];
-function normalizeAnswer(value){return value.toLowerCase().replace(/[’‘]/g,"'").replace(/i'm/g,'i am').replace(/[.,!?;:]/g,'').replace(/\s+/g,' ').trim();}
+const addedPhrases=['','잠들기 전에','매일 밤','바쁜 날에도'];
+const clauses=[['before bed','before going to bed','before i go to bed','before bedtime','before sleeping','before i sleep','prior to going to bed'],['every night','each night'],['even when i am busy','even on busy days','even if i am busy']];
+let round=0,running=false,deadline=0,interval=null,practiceState='idle',solved=0;
+const attempts=new Map();
+function normalizeAnswer(value){return value.toLowerCase().replace(/[’‘]/g,"'").replace(/\bi'm\b/g,'i am').replace(/\bdon't\b/g,'do not').replace(/[.,!?;:]/g,' ').replace(/\s+/g,' ').trim();}
+function updatePrompt(meaning=''){
+ const prompt=document.querySelector('#koreanPrompt');prompt.replaceChildren();
+ const phrase=meaning||addedPhrases[round],position=phrase?prompts[round].indexOf(phrase):-1;
+ if(position<0){prompt.textContent=prompts[round];}else{const tag=document.createElement(meaning?'mark':'u');tag.textContent=phrase;prompt.append(document.createTextNode(prompts[round].slice(0,position)),tag,document.createTextNode(prompts[round].slice(position+phrase.length)));}
+ document.querySelector('#roundLabel').textContent=`0${round+1} / 04`;
+}
+function permutations(parts){return parts.length?parts.flatMap((part,i)=>permutations(parts.filter((_,j)=>i!==j)).map(tail=>[part,...tail])):[[]];}
+const answerCache=new Map();
 function acceptedAnswers(stage=round){
- const bedtime=['before bed','before going to bed','before i go to bed','before bedtime'];
- const nightly=['every night','each night'];
- const busy=['even when i am busy','even on busy days'];
- let variants=['i read books'];
- if(stage>=1)variants=bedtime.flatMap(time=>[`i read books ${time}`,`${time} i read books`]);
- if(stage>=2)variants=bedtime.flatMap(time=>nightly.flatMap(night=>[`i read books ${time} ${night}`,`i read books ${night} ${time}`,`${night} i read books ${time}`,`${time} ${night} i read books`]));
- if(stage===3)variants=variants.flatMap(sentence=>busy.flatMap(condition=>[`${sentence} ${condition}`,`${condition} ${sentence}`]));
- return variants;
+ if(answerCache.has(stage))return answerCache.get(stage);
+ let sets=[['i read books'],['i read a book'],['i read the book'],['i read the books']];
+ for(let i=0;i<stage;i++)sets=sets.flatMap(parts=>clauses[i].map(clause=>[...parts,clause]));
+ const answers=[...new Set(sets.flatMap(parts=>permutations(parts).map(order=>order.join(' '))))];answerCache.set(stage,answers);return answers;
 }
-function markPromptMeaning(phrase){
- updatePrompt();if(!phrase)return;
- const prompt=document.querySelector('#koreanPrompt'),text=prompts[round],position=text.indexOf(phrase);if(position<0)return;
- const mark=document.createElement('mark');mark.textContent=phrase;prompt.replaceChildren(document.createTextNode(text.slice(0,position)),mark,document.createTextNode(text.slice(position+phrase.length)));
- const cue=document.createElement('span');cue.className='prompt-cue';cue.textContent='확인할 뜻: '+phrase;prompt.append(cue);
+function closeSpelling(a,b){
+ if(a===b||Math.abs(a.length-b.length)>1)return false;
+ if(a.length===b.length){const positions=[...a].map((char,i)=>char===b[i]?-1:i).filter(i=>i>=0);if(positions.length===1)return true;if(positions.length===2){const [i,j]=positions;return j===i+1&&a[i]===b[j]&&a[j]===b[i];}return false;}
+ const longer=a.length>b.length?a:b,shorter=a.length>b.length?b:a;let i=0;while(i<shorter.length&&longer[i]===shorter[i])i++;return longer.slice(i+1)===shorter.slice(i);
 }
-function rememberFeedback(result,text){
- if(['correct','alternative','timeout'].includes(result[0]))return;
- const note={round,text,kind:result[0],title:result[1],reason:result[2]};
- if(!practiceNotes.some(item=>item.round===round&&item.text===text&&item.kind===result[0]))practiceNotes.push(note);
-}
-function renderPracticeReview(){
- const items=document.querySelector('#practiceReviewItems');items.replaceChildren();reviewPanel.hidden=!practiceNotes.length;reviewPanel.open=false;
- for(const note of practiceNotes){const row=document.createElement('p'),label=document.createElement('strong'),answer=document.createElement('span'),reason=document.createElement('small');label.textContent=`${note.round+1}번 · ${note.title}`;answer.textContent=note.text;reason.textContent=note.reason;row.append(label,document.createElement('br'),answer,reason);items.append(row);}
-}
-function oneEditApart(a,b){if(Math.abs(a.length-b.length)>1)return false;let i=0,j=0,edits=0;while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue;}if(++edits>1)return false;if(a.length>=b.length)i++;if(b.length>=a.length)j++;}return edits+(a.length-i)+(b.length-j)===1;}
 function assessAnswer(text){
  const answer=normalizeAnswer(text);
- if(answer===normalizeAnswer(references[round]))return ['correct','✓ 잘 썼어요.','다음 문장으로 확장해보세요.'];
- const variants=acceptedAnswers();
- if(variants.includes(answer))return ['alternative','✓ 이 표현도 맞아요.','예문과 표현이 달라도 같은 뜻이에요.'];
- const conversational=answer.replace(/\bprior to going to bed\b/g,'before bed');
- if(conversational!==answer&&variants.includes(conversational))return ['natural','뜻이 맞는 표현이에요.','prior to going to bed도 맞아요. 일상 대화에서는 before bed로 더 간단하게 말할 수 있어요.'];
- if(/\bi (?:reads|reading|am read) books\b/.test(answer))return ['error','동사 형태를 확인해보세요.','I 뒤에는 read를 써요. 예: I read books.'];
- if(/\bbefore (?:sleep|go to bed)\b/.test(answer))return ['error','‘잠들기 전에’ 표현을 확인해보세요.','before bed 또는 before going to bed를 써보세요.'];
- for(let stage=round-1;stage>=0;stage--)if(acceptedAnswers(stage).includes(answer))return ['incomplete','빠진 뜻을 더해보세요.',`‘${addedPhrases[stage+1]}’의 뜻을 더해보세요.`,null,addedPhrases[stage+1]];
+ const result=(kind,key,label,hint,pattern=null,meaning='')=>({kind,key,label,hint,pattern,meaning});
+ if(!answer)return result('input','empty','입력 안내','영어 문장을 쓰고 Enter를 눌러주세요.');
+ if(!/[a-z]/i.test(text))return result('input','language','입력 안내','문제의 뜻을 영어 문장으로 써보세요.');
+ const rangePattern=(source)=>new RegExp(source,'i');
+ if(/\bi (?:do not|never|cannot|can't|did not|didn't)\b/.test(answer))return result('error','negative','뜻 확인','문제는 ‘읽는다’예요. 부정 표현을 빼보세요.',rangePattern("\\b(?:do not|don't|never|cannot|can't|did not|didn't)\\b"),'읽는다');
+ if(/\b(?:yesterday|last night)\b/.test(answer))return result('error','tense','뜻 확인','특정한 과거가 아니라 반복하는 습관을 써보세요.',/\b(?:yesterday|last night)\b/i,'읽는다');
+ if(/\bi (?:reads|reading|am read|am reading)\b/.test(answer))return result('error','verb','문법','반복하는 습관은 I read로 써요.',/\b(?:reads|reading|am read|am reading)\b/i,'읽는다');
+ const different=answer.match(/\bi (buy|write|sell|watch|like)\b/);
+ if(different){const meanings={buy:'사다',write:'쓰다',sell:'팔다',watch:'보다',like:'좋아하다'};return result('error','meaning','뜻 확인',`${different[1]}는 ‘${meanings[different[1]]}’예요. ‘읽다’는 read를 써요.`,rangePattern(`\\b${different[1]}\\b`),'읽는다');}
+ if(/\bi read (?:a books|book)\b/.test(answer))return result('error','article','문법','한 권이면 a book, 일반적인 독서라면 books를 써요.',/\b(?:a books|book)\b/i);
+ if(/\bbefore go to bed\b/.test(answer))return result('error','before','문법','before 뒤 동작은 going to bed로 써요.',/\bgo to bed\b/i,'잠들기 전에');
  const words=[...text.matchAll(/[a-z]+(?:['’][a-z]+)?/gi)];
- for(const variant of variants){const target=variant.split(' ');if(target.length!==words.length)continue;const wrong=words.map((word,i)=>word[0].toLowerCase()===target[i]?-1:i).filter(i=>i>=0);if(wrong.length===1&&oneEditApart(words[wrong[0]][0].toLowerCase(),target[wrong[0]])){const word=words[wrong[0]];return ['typo','철자만 조금 고쳐보세요.',`표시한 단어를 확인해보세요. 이 문제의 표현은 ${target[wrong[0]]}예요.`,[word.index,word.index+word[0].length]];}}
- const different=answer.match(/^i (buy|write|sell|watch|like) books\b/);
- if(different){const meanings={buy:'사다',write:'쓰다',sell:'팔다',watch:'보다',like:'좋아하다'};const word=words[1];return ['error','제시된 뜻과 달라요.',`${different[1]}는 ‘${meanings[different[1]]}’예요. ‘읽다’에 맞는 동사를 써보세요.`,[word.index,word.index+word[0].length]];}
- return ['review','이 답은 아직 확인하기 어려워요.','다른 표현일 수도 있어요. 수정하거나 예시와 비교해보세요.'];
+ if(acceptedAnswers().includes(answer))return result('correct','accepted','맞아요',answer.includes('prior to')?'맞아요. 일상적으로는 before bed라고도 해요.':'같은 뜻의 올바른 표현이에요.');
+ // Match complete phrase units, so a valid new order can still omit one required meaning.
+ let rest=answer.replace(/\bi read (?:a book|the books|the book|books)\b/,'').trim();
+ if(rest!==answer){const present=new Set();let progress=true;while(rest&&progress){progress=false;for(let i=0;i<clauses.length;i++)for(const phrase of clauses[i])if(rest===phrase||rest.startsWith(phrase+' ')){if(present.has(i))return result('review','repeated','표현 확인',`‘${addedPhrases[i+1]}’ 표현이 반복됐어요. 한 번만 써보세요.`);present.add(i);rest=rest.slice(phrase.length).trim();progress=true;break;}}
+  if(!rest){for(let i=0;i<round;i++)if(!present.has(i)){const meaning=addedPhrases[i+1];return result('incomplete','missing-'+i,'뜻 누락',`‘${meaning}’의 뜻을 더해보세요.`,null,meaning);}if([...present].some(i=>i>=round))return result('review','extra','뜻 확인','문제에 없는 시간·조건이 더해졌어요. 지금 문제의 뜻에 맞춰보세요.');}
+ }
+ if(/^read (?:books|a book|the books|the book)\b/.test(answer))return result('incomplete','subject','문장 이어 쓰기','‘나는’에 해당하는 I를 read 앞에 더해보세요.');
+ if(/^i (?:books|a book|the books|the book)$/.test(answer))return result('incomplete','verb-missing','문장 이어 쓰기','‘읽는다’에 해당하는 read를 I 뒤에 더해보세요.');
+ if(answer==='i read')return result('incomplete','object','문장 이어 쓰기','무엇을 읽는지 더해보세요. ‘책을’은 books 또는 a book이라고 써요.');
+ for(const variant of [...new Set(Array.from({length:round+1},(_,stage)=>acceptedAnswers(stage)).flat())]){
+  const target=variant.split(' ');if(target.length!==words.length)continue;
+  const wrong=words.map((word,i)=>word[0].toLowerCase()===target[i]?-1:i).filter(i=>i>=0);
+  if(wrong.length===1){const i=wrong[0];if(closeSpelling(words[i][0].toLowerCase(),target[i])){const r=result('typo','spelling-'+target[i],'철자',`‘${words[i][0]}’의 철자를 확인해보세요. 바른 철자는 ${target[i]}예요.`);r.range=[words[i].index,words[i].index+words[i][0].length];return r;}}
+ }
+ if(/\bbefore$/.test(answer))return result('incomplete','unfinished','문장 이어 쓰기','before 뒤에 언제인지 이어 써보세요. 예: before bed',/\bbefore\b/i,'잠들기 전에');
+ return result('review','unknown','예시와 비교',`다른 올바른 표현일 수도 있어요. 이 답은 확실히 판정하기 어려워요. 예시: ${references[round]}`);
 }
-const expandSurface=document.querySelector('#expandSurface'),expandHighlight=document.querySelector('#expandHighlight');
 function syncExpansionScroll(){expandHighlight.scrollTop=expandInput.scrollTop;expandHighlight.scrollLeft=expandInput.scrollLeft;}
+function clearFeedback(){feedback.hidden=true;expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();updatePrompt();}
+function highlightAnswer(result){
+ const text=expandInput.value,fragment=document.createDocumentFragment();let range=result.range;
+ if(!range&&result.pattern){const match=result.pattern.exec(text);if(match)range=[match.index,match.index+match[0].length];}
+ if(!range){expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();return;}
+ fragment.append(document.createTextNode(text.slice(0,range[0])));const span=document.createElement('span');span.className=result.kind==='typo'?'typed-typo':'typed-wrong';span.textContent=text.slice(...range);fragment.append(span,document.createTextNode(text.slice(range[1])+'\n'));expandHighlight.replaceChildren(fragment);expandSurface.dataset.reviewed='true';syncExpansionScroll();
+}
+function showFeedback(result){
+ if(result.kind==='correct'){solved++;const message=result.hint;advanceSentence();if(practiceState!=='complete')expandStatus.textContent=`✓ ${message} 다음 문장에 60초가 주어져요.`;return;}
+ const count=(attempts.get(result.key)||0)+1;attempts.set(result.key,count);
+ let hint=result.hint;
+ if(result.kind==='incomplete'&&count>1&&addedPhrases.indexOf(result.meaning)>0){const index=addedPhrases.indexOf(result.meaning);hint=`‘${result.meaning}’는 ${clauses[index-1][0]}라고 써요. 기존 문장에 더해보세요.`;}
+ feedback.dataset.kind=result.kind;document.querySelector('#feedbackTitle').textContent=result.label;document.querySelector('#feedbackReason').textContent=hint;feedback.hidden=false;updatePrompt(result.meaning);highlightAnswer(result);
+ expandStatus.textContent='수정 후 Enter로 다시 확인 · 시간은 계속 흘러요.';
+}
+function tick(){
+ const remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));document.querySelector('#clockSeconds').textContent=String(remaining);clock.dataset.phase=remaining<=10?'urgent':remaining<=30?'warning':'normal';clock.dataset.running=String(running&&remaining>0);clock.setAttribute('aria-label',`이 문장 남은 시간 ${remaining}초`);if(!remaining)finish();
+}
+function beginSentence(){
+ clearInterval(interval);practiceState='writing';running=true;attempts.clear();clearFeedback();expandInput.value='';expandInput.placeholder='영어 문장을 쓰고 Enter ↵';deadline=Date.now()+60000;expandStatus.textContent='Enter로 확인 · 정답이면 다음 문장으로 넘어가요.';tick();interval=setInterval(tick,250);expandInput.focus({preventScroll:true});
+}
+function startPractice(){round=0;solved=0;beginSentence();}
+function advanceSentence(){
+ clearInterval(interval);running=false;clock.dataset.running='false';
+ if(round===prompts.length-1){practiceState='complete';clearFeedback();expandInput.value='';expandInput.placeholder='연습 완료! 여기를 누르면 다시 시작해요.';expandStatus.textContent=`✓ 연습 완료 · ${solved} / ${prompts.length}문장 정답. Enter 또는 입력창을 눌러 다시 시작하세요.`;return;}
+ round++;beginSentence();
+}
+function finish(){
+ clearInterval(interval);running=false;practiceState='timeout';clock.dataset.running='false';document.querySelector('#clockSeconds').textContent='0';
+ expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();feedback.dataset.kind='timeout';document.querySelector('#feedbackTitle').textContent='시간 종료';document.querySelector('#feedbackReason').textContent=`내 답과 비교해보세요. 예시: ${references[round]}`;feedback.hidden=false;updatePrompt();expandStatus.textContent='Enter를 누르거나 입력창을 눌러 다음으로 넘어가세요.';
+}
+function submitExpansionAnswer(){
+ if(practiceState==='idle'||practiceState==='complete'){startPractice();return;}
+ if(practiceState==='timeout'){advanceSentence();return;}
+ if(Date.now()>=deadline){finish();return;}
+ showFeedback(assessAnswer(expandInput.value));
+}
+expandInput.addEventListener('focus',()=>{if(practiceState==='idle')startPractice();});
+expandInput.addEventListener('click',()=>{if(practiceState==='complete')startPractice();else if(practiceState==='timeout')advanceSentence();});
+expandInput.addEventListener('input',()=>{if(practiceState==='writing'){clearFeedback();expandStatus.textContent='Enter로 확인 · 남은 시간 안에 자유롭게 고쳐보세요.';}});
 expandInput.addEventListener('scroll',syncExpansionScroll);
-function highlightAnswer(kind,range){
- const text=expandInput.value,fragment=document.createDocumentFragment();
- // Only mark recognized errors; a different valid translation is not a typo.
- const pattern=kind==='error'?/\b(?<=i )(reads|reading|am read)\b|(?<=before )(sleep|go to bed)\b/gi:null;
- let offset=0;
- if(range){fragment.append(document.createTextNode(text.slice(0,range[0])));const span=document.createElement('span');span.className=kind==='typo'?'typed-typo':'typed-wrong';span.textContent=text.slice(...range);fragment.append(span);offset=range[1];}
- if(!range&&pattern)for(const match of text.matchAll(pattern)){fragment.append(document.createTextNode(text.slice(offset,match.index)));const span=document.createElement('span');span.className='typed-wrong';span.textContent=match[0];fragment.append(span);offset=match.index+match[0].length;}
- fragment.append(document.createTextNode(text.slice(offset)+'\n'));expandHighlight.replaceChildren(fragment);expandSurface.dataset.reviewed='true';syncExpansionScroll();
-}
-const expansionHint=document.querySelector('#expansionHint');
-function showFeedback(result,text){
- const accepted=result[0]==='correct'||result[0]==='alternative'||result[0]==='natural',ended=accepted||result[0]==='timeout';
- if(ended){clearInterval(interval);running=false;clock.dataset.running='false';}
- rememberFeedback(result,text);hintLevel=0;expansionHint.textContent='힌트 보기';
- if(accepted){advanceSentence();if(running)expandStatus.textContent=(result[0]==='natural'?'✓ 뜻이 맞아요. 표현 팁은 연습 후 확인하세요.':result[0]==='correct'?'✓ 잘 썼어요.':'✓ 이 표현도 맞아요.')+' 다음 문장에 60초가 주어져요.';return;}
- markPromptMeaning(result[0]==='incomplete'?result[4]:result[0]==='error'?(/before/.test(normalizeAnswer(text))&&/잠들기/.test(result[1])?'잠들기 전에':'읽는다'):null);
- const details=document.querySelector('#feedbackDetails');details.open=false;details.hidden=result[0]==='timeout';
- const explanations={error:result[2],typo:result[2],incomplete:'앞에서 쓴 문장은 유지하고 한글에서 표시한 뜻을 영어로 더해보세요.',review:'등록된 예문과 다르다는 이유만으로 틀린 문장은 아니에요. 지금은 이 표현을 확실하게 판정할 수 없어요. 힌트나 예시와 비교해보세요.',timeout:result[2]};
- document.querySelector('#feedbackExplanation').textContent=explanations[result[0]]||result[2];
- expandInput.readOnly=ended;submitExpansion.disabled=ended;submitExpansion.hidden=ended;submitExpansion.textContent='다시 확인 ↵';nextExpansion.hidden=false;expansionHint.hidden=accepted;
- feedback.dataset.kind=result[0];document.querySelector('#feedbackTitle').textContent=result[1];document.querySelector('#feedbackReason').textContent=({error:'표시한 부분을 고치고 다시 확인해보세요.',typo:'노란색으로 표시한 단어를 확인해보세요.',incomplete:result[2],review:'틀렸다고 단정할 수 없어요. 예시와 비교해보세요.'})[result[0]]||result[2];feedback.hidden=false;highlightAnswer(result[0],result[3]);
- nextExpansion.textContent=round===prompts.length-1?'연습 마치기 ✓':accepted||result[0]==='timeout'?'다음 문장 · 60초 시작 →':'건너뛰기 →';
- expandStatus.textContent=ended?'확인을 마치면 다음 문장으로 넘어가세요.':'시간은 계속 흘러요. 남은 시간 안에 수정하고 다시 확인해보세요.';
-}
-expandInput.addEventListener('input',()=>{if(!feedback.hidden&&!expandInput.readOnly){expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();feedback.hidden=true;expansionHint.hidden=true;document.querySelector('#feedbackDetails').open=false;updatePrompt();}});
-expansionHint.addEventListener('click',()=>{hintLevel++;const hints=['read는 ‘읽다’예요. I 뒤에 동사원형을 써보세요.','‘잠들기 전에’는 before bed로 표현할 수 있어요.','‘매일 밤’은 every night로 표현할 수 있어요.','‘바쁜 날에도’는 even when I am busy로 표현할 수 있어요.'];document.querySelector('#feedbackReason').textContent=hintLevel===1?hints[round]:`예시: ${references[round]}`;expansionHint.textContent=hintLevel===1?'예시 보기':'예시 확인 중';if(hintLevel>=2)expansionHint.hidden=true;});
-function finish(){document.querySelector('#clockSeconds').textContent='0';clock.dataset.phase='urgent';clock.setAttribute('aria-label','이 문장 남은 시간 0초');showFeedback(['timeout','◷ 이 문장의 60초가 끝났어요',`예시: ${references[round]}`],expandInput.value.trim());}
-function tick(){const remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));document.querySelector('#clockSeconds').textContent=String(remaining);clock.dataset.phase=remaining<=10?'urgent':remaining<=30?'warning':'normal';clock.dataset.running=String(running&&remaining>0);clock.setAttribute('aria-label',`이 문장 남은 시간 ${remaining}초`);if(!remaining)finish();}
-function beginSentence(){clearInterval(interval);feedback.hidden=true;nextExpansion.hidden=true;expansionHint.hidden=true;hintLevel=0;expansionHint.textContent='힌트 보기';submitExpansion.hidden=false;submitExpansion.textContent='입력 완료 ↵';expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();updatePrompt();expandInput.value='';expandInput.disabled=false;expandInput.readOnly=false;submitExpansion.disabled=false;expandInput.placeholder='한글 문장을 영어로 써보세요.';deadline=Date.now()+60000;running=true;expandStatus.textContent='이 문장에 60초 · 정답이면 바로 다음 문장으로 넘어가요.';startButton.textContent='처음부터 ↺';tick();interval=setInterval(tick,250);expandInput.focus({preventScroll:true});}
-function startPractice(){round=0;practiceNotes=[];reviewPanel.hidden=true;document.querySelector('#practiceReviewItems').replaceChildren();beginSentence();}
-startButton.addEventListener('click',startPractice);
-expandInput.addEventListener('focus',()=>{if(!running&&feedback.hidden)startPractice();});
-function advanceSentence(){if(round===prompts.length-1){clearInterval(interval);running=false;clock.dataset.running='false';feedback.hidden=true;nextExpansion.hidden=true;expansionHint.hidden=true;hintLevel=0;expansionHint.textContent='힌트 보기';submitExpansion.hidden=false;submitExpansion.textContent='입력 완료 ↵';expandSurface.dataset.reviewed='false';expandHighlight.replaceChildren();expandInput.readOnly=true;expandInput.value='';expandInput.placeholder='여기를 누르면 다시 연습할 수 있어요.';renderPracticeReview();expandStatus.textContent='네 문장 완료! 오늘 연습한 표현을 기억해보세요.';startButton.textContent='다시 시작 ↗';startButton.focus({preventScroll:true});return;}round++;beginSentence();}
-nextExpansion.addEventListener('click',advanceSentence);
-document.querySelector('#expandForm').addEventListener('submit',event=>{event.preventDefault();if(!running)return;if(Date.now()>=deadline){finish();return;}const text=expandInput.value;if(!text.trim()){expandStatus.textContent='영어 문장을 입력한 뒤 완료해주세요.';expandInput.focus({preventScroll:true});return;}showFeedback(assessAnswer(text),text);});
-expandInput.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();document.querySelector('#expandForm').requestSubmit();}});
+document.querySelector('#expandForm').addEventListener('submit',event=>{event.preventDefault();submitExpansionAnswer();});
+expandInput.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();submitExpansionAnswer();}});
+expandInput.addEventListener('beforeinput',event=>{if(!event.isComposing&&['insertLineBreak','insertParagraph'].includes(event.inputType)){event.preventDefault();submitExpansionAnswer();}});
 document.addEventListener('visibilitychange',()=>{if(running)tick();});
+
 const quotes=[['Every small step is a new beginning.','작은 한 걸음마다 새로운 시작이 있어요.'],['Make a little room for something new.','새로운 것을 위한 작은 여유를 만들어보세요.'],['Let your thoughts find their own words.','생각이 저만의 문장을 찾도록 해보세요.']];let quoteIndex=0;const copyInput=document.querySelector('#copyInput'),copyStatus=document.querySelector('#copyStatus');
 function updateCopy(){const text=copyInput.value,target=quotes[quoteIndex][0];
 copyInput.maxLength=target.length;
