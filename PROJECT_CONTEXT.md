@@ -16,4 +16,4 @@
 - 문서 위치: [PLANNING.md](PLANNING.md)에 기획을 통합하고 [lesson/lesson2.md](lesson/lesson2.md)에 수업 2 기록을 유지한다. lesson 폴더의 Markdown은 docs_group·lesson_order 메타데이터로 Docs 하위 트리에 자동 표시한다. lesson.html은 새 Lesson 2 주소로 이동한다. 배포 후 PC·모바일(1280·390·360px)에서 중첩 트리·현재 파일 표시·문서 내용·접기·키보드·새로고침·기존 주소 연결·화면 너비 검증을 통과했다. Lesson 2 주소: https://wkqkel9.github.io/my-agent/lesson/lesson2.html
 
 
-- Docs 디자인 변경: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·파일 트리·문서 본문을 제공한다. 기본 문서는 PLANNING.md이며 각 문서 URL에서도 같은 트리를 유지한다. 공개 진입 경로는 docs.html이고 기존 wiki.html은 이 주소로 이동한다. 공개 PC·모바일(1280·390·360px) 파일 선택·현재 문서 표시·직접 새로고침·트리 접기·키보드 조작·가로 넘침 검증을 통과했고, 두 화면을 이미지로 확인했다. HTML·CSS의 공개 반영과 기존 주소의 이동도 확인했다.
+- Docs UI: `_layouts/default.html`과 `wiki.css`에서 공통 헤더·문서 본문·사이드바를 제공한다. 이번 변경은 최상위 접기·폴더 구분선·파일 아이콘을 제거하고, lesson의 꺾쇠·한 단계 들여쓰기·선택 배경을 정리했다. 기본 문서는 PLANNING.md이며 docs.html·각 문서 URL에서 같은 사이드바를 유지한다. 이번 사이드바 변경은 검증·배포 전이다.

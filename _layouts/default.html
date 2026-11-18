@@ -27,23 +27,23 @@
         <a class="wiki-title" href="{{ '/docs.html' | relative_url }}">Docs<span>.</span></a>
         <p class="sidebar-note">기획과 배움의 기록.</p>
         <nav aria-label="Markdown 파일 트리">
-          <details class="file-tree" open>
-            <summary>my-agent<span>/</span></summary>
-            <ul>
-              <li><a href="{{ '/PLANNING.html' | relative_url }}" {% if current_file == 'PLANNING.md' %}aria-current="page"{% endif %}><span class="file-icon" aria-hidden="true">≡</span>PLANNING.md</a></li>
+          <div class="file-tree">
+            <p class="tree-heading">문서</p>
+            <ul class="tree-root">
+              <li><a href="{{ '/PLANNING.html' | relative_url }}" {% if current_file == 'PLANNING.md' %}aria-current="page"{% endif %}>PLANNING.md</a></li>
               <li>
                 <details class="lesson-tree" open>
-                  <summary>lesson<span>/</span></summary>
-                  <ul>
+                  <summary><span>lesson</span><span class="tree-chevron" aria-hidden="true"></span></summary>
+                  <ul class="tree-children">
                     {% assign lessons = site.pages | where: 'docs_group', 'lesson' | sort: 'lesson_order' %}
                     {% for lesson in lessons %}
-                    <li><a href="{{ lesson.url | relative_url }}" {% if page.path == lesson.path %}aria-current="page"{% endif %}><span class="file-icon" aria-hidden="true">≡</span>{{ lesson.name }}</a></li>
+                    <li><a href="{{ lesson.url | relative_url }}" {% if page.path == lesson.path %}aria-current="page"{% endif %}>{{ lesson.name }}</a></li>
                     {% endfor %}
                   </ul>
                 </details>
               </li>
             </ul>
-          </details>
+          </div>
         </nav>
         <a class="back-link" href="{{ '/' | relative_url }}">← 연습 페이지</a>
       </aside>
