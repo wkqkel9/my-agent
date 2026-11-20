@@ -1,25 +1,7 @@
----
-layout: default
-title: 확정 기획
----
+# 확정 기획
 
-# 확정된 기획
-
-현재 유효한 확정 사항은 기능별 문서에서 관리한다. 이 문서는 서비스 전체 미션을 별도로 정의하지 않으며, 기능 간 관계와 문서 위치만 안내한다.
-
-## 기능별 기획
-
-| 기능 | 역할 | 기획 문서 |
-|---|---|---|
-| 소개 | 서비스 설명과 영작·필사 데모의 진입점 | [introduction.md](planning/introduction.html) |
-| 영작 | 좋은 문장을 단계적·반복적으로 직접 영작하는 학습 | [writing.md](planning/writing.html) |
-| 필사 | 소개 페이지에서 제공하는 필사 체험 | [transcription.md](planning/transcription.html) |
-| 기능 안내 챗봇 | 영작·필사 이용 방법을 안내하는 FAQ | [chatbot.md](planning/chatbot.html) |
-
-소개 페이지는 각 학습 기능을 설명하고 데모를 제공한다. 영작은 독립 페이지에서도 제공하며, 챗봇은 영작·필사의 이용 방법을 보조한다.
-
-## 관련 문서
-
-- 구현·배포 구조: [ARCHITECTURE.md](ARCHITECTURE.html)
-- 현재 구현·배포 상태: `PROJECT_CONTEXT.md`
-- Lesson 기술과 서비스 활용: [LESSONS.md](LESSONS.html)
+- 서비스는 소개, 영작, 필사, 기능 기록으로 구성한다.
+- 2회차 FAQ 대화는 `data/faq.txt`와 `bot.py`를 사용한다.
+- 3회차 뜻 검색은 18개 문법 대분류로 구성한 `data/grammar_guide.txt`와 `search.py`를 사용한다.
+- 3회차 검색은 가까운 원문 세 줄과 점수, 원문을 포함한 답변용 질문을 출력하며 모델 API를 호출하지 않는다.
+- 소스 코드는 GitHub `main`에 보관하고, GitHub Pages와 Render 배포는 사용자가 별도로 실행할 때만 진행한다.

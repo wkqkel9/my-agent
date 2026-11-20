@@ -3,7 +3,7 @@ const html=fs.readFileSync('index.html','utf8'),nodes=new Map(),requests=[];
 function element(){return {children:[],listeners:{},dataset:{},style:{},value:'',textContent:'',hidden:true,scrollTop:0,scrollLeft:0,append(...x){this.children.push(...x)},replaceChildren(...x){this.children=x},setAttribute(){},addEventListener(k,f){this.listeners[k]=f},focus(){}}}
 const document={querySelector(k){if(!nodes.has(k))nodes.set(k,element());return nodes.get(k)},querySelectorAll(){return []},createElement:element,createDocumentFragment:element,createTextNode(t){return {textContent:t}},addEventListener(){}};
 const context=vm.createContext({document,console,AbortController,Date,setTimeout,clearTimeout,setInterval(){return 1},clearInterval(){},fetch(url,options){return new Promise((resolve,reject)=>requests.push({url,options,resolve,reject}))}});
-vm.runInContext(fs.readFileSync('writing.js','utf8'),context);
+vm.runInContext(fs.readFileSync('app/js/writing.js','utf8'),context);
 const run=s=>vm.runInContext(s,context),flush=()=>new Promise(r=>setImmediate(r));
 (async()=>{
  run('startPractice();expandInput.value="I read a book";submitExpansionAnswer()');assert.equal(run('round'),1);assert.equal(requests.length,0);

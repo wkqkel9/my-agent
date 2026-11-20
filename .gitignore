@@ -1,4 +1,11 @@
 /.bundle/
 /_site/
 /vendor/bundle/
+/.venv/
+/.env
+__pycache__/
+*.pyc
+/data/agent.db
+/models/
+.DS_Store
 

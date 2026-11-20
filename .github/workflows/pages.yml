@@ -1,9 +1,6 @@
 name: Deploy landing page to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -28,28 +25,13 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Prepare site
+      - name: Prepare static site
         run: |
-          mkdir _pages
-          cp index.html writing.html writing.js site.css chatbot.js PLANNING.md ARCHITECTURE.md LESSONS.md lesson.html wiki.md wiki.html _config.yml wiki.css _pages/
-          cp -R _layouts planning _pages/
-
-      - name: Render Markdown with GitHub Pages
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./_pages
-          destination: ./_site
-
-      - name: Verify documentation pages
-        run: |
-          test -s _site/docs.html
-          test -s _site/PLANNING.html
-          test -s _site/ARCHITECTURE.html
-          test -s _site/LESSONS.html
-          test -s _site/planning/introduction.html
-          test -s _site/planning/writing.html
-          test -s _site/planning/transcription.html
-          test -s _site/planning/chatbot.html
+          mkdir _site
+          cp index.html _site/
+          cp -R app _site/
+          test -s _site/index.html
+          test -s _site/app/features.html
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3

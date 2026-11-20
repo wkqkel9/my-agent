@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f9f8f5">
+  <meta name="description" content="typing 에이전트에 회차별로 추가한 개발 기능과 실행 기록.">
+  <title>기능 — typing</title>
+  <link rel="stylesheet" href="./css/site.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav aria-label="주 메뉴">
+      <a class="brand" href="../index.html" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a>
+      <div class="links">
+        <a href="../index.html">소개</a>
+        <a href="./writing.html">영작</a>
+        <a href="../index.html#copywriting">필사</a>
+        <a href="./features.html" aria-current="page">기능</a>
+      </div>
+    </nav>
+    <main class="writing-main">
+      <header class="writing-heading">
+        <div class="eyebrow">Feature Log</div>
+        <h1>회차별 추가 기능,<br>단계별 개발 기록.</h1>
+        <p>서비스 개발 과정에서 새로 붙인 에이전트 기능과<br>실제 동작 결과를 모아둔 페이지입니다.</p>
+      </header>
+      <section class="session-feature" aria-labelledby="session02Title">
+        <div>
+          <div class="eyebrow">PBL 02 · Q&amp;A Bot</div>
+          <h2 id="session02Title">고친 FAQ로 답하고,<br>대화를 기록합니다.</h2>
+          <p><strong>오늘 붙인 기능:</strong> 영작·필사 질문에 고친 FAQ로 답하고, 대화와 메뉴 사용을 SQLite에 기록합니다.</p>
+          <div class="session-flow" aria-label="2회차 기능 흐름"><span>answer.md</span><b>→</b><span>data/faq.txt</span><b>→</b><span>bot.py</span><b>→</b><span>SQLite</span></div>
+        </div>
+        <figure class="session-capture">
+          <img src="./images/session-02-chat.png" alt="실제 로컬 웹 챗봇에서 2. FAQ 대화를 선택해 영작 시간과 필사 차이를 묻고 bot.py FAQ로 답한 화면">
+          <figcaption>2회 기능 · 실제 웹 실행 화면 · bot.py FAQ 질문과 답</figcaption>
+        </figure>
+      </section>
+      <section class="session-feature" aria-labelledby="session03Title">
+        <div>
+          <div class="eyebrow">PBL 03 · Semantic Search</div>
+          <h2 id="session03Title">내 말로 물으면,<br>문법 자료를 뜻으로 찾습니다.</h2>
+          <p><strong>오늘 붙인 기능:</strong> 내 말로 물으면 영문법 자료에서 뜻이 가까운 셋을 찾아 원문과 점수를 보여 줍니다.</p>
+          <div class="session-flow" aria-label="3회차 기능 흐름"><span>grammar_guide.txt</span><b>→</b><span>embed.py</span><b>→</b><span>search.py</span><b>→</b><span>원문 3개 + 점수</span></div>
+        </div>
+        <figure class="session-capture">
+          <img src="./images/session-03-search.png" alt="실제 로컬 웹 메뉴 3에서 did 다음에 went를 써도 되는지 묻고 가까운 문법 원문 세 줄과 점수를 찾은 화면">
+          <figcaption>3회 기능 · 실제 웹 실행 화면 · 내 질문 → 가까운 원문 세 줄과 점수</figcaption>
+        </figure>
+      </section>
+    </main>
+    <footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><span>© 2026 typing</span></footer>
+  </div>
+  <button class="chat-fab" id="chatFab" aria-label="학습 도우미 챗봇 열기" aria-expanded="false" aria-controls="chatPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-4 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 9h10M7 13h7"/></svg></button>
+  <section class="chat-panel" id="chatPanel" aria-label="학습 도우미" hidden><div class="chat-header">typing · 학습 도우미<button id="closeChat" aria-label="챗봇 닫기">×</button></div><div class="chat-log" id="chatLog" role="log" aria-live="polite"><div class="message">궁금한 기능을 골라주세요. 문장확장·필사에서 세부 질문을 선택하거나 이용 방법을 입력할 수 있어요.</div></div><div class="chat-options" id="chatOptions" role="group" aria-label="도움말 항목"></div><form class="chat-form" id="chatForm"><input id="chatInput" aria-label="학습 방법 질문" placeholder="궁금한 연습 방법을 입력하세요" autocomplete="off" maxlength="500"><button type="submit">전송</button></form></section>
+  <script src="./js/chatbot.js" defer></script>
+</body>
+</html>
