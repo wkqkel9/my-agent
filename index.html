@@ -1,34 +1,260 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f9f8f5"><meta name="description" content="시간 안에 내 문장을 확장하고, 좋은 문장을 따라 쓰세요. 영어를 내 것으로 만드는 두 가지 연습, typing."><title>typing — 영어가 내 문장이 되는 연습</title>
-<link rel="stylesheet" href="./app/css/site.css"></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f9f8f5">
+  <meta name="description" content="실전 상황을 보고 영어 문장으로 표현하는 AI 영작 훈련, typing.">
+  <title>typing — 실전 영작 훈련</title>
+  <link rel="stylesheet" href="./app/css/site.css">
+  <script src="./app/js/writing.js" defer></script>
+  <script src="./app/js/chatbot.js" defer></script>
+</head>
 <body>
-<!-- ── 로그인 / 회원가입 모달 ── -->
-<div id="authBox" class="auth-modal" aria-modal="true" role="dialog" aria-label="로그인" hidden>
-  <div class="auth-modal-inner">
-    <button class="auth-close" id="authClose" aria-label="닫기">×</button>
-    <div class="eyebrow"><span id="authEyebrow">Sign in</span></div>
-    <h2 id="authTitle">로그인</h2>
-    <div class="auth-fields">
-      <input id="authUsername" type="text" placeholder="아이디" autocomplete="username" minlength="3" maxlength="32" required />
-      <input id="authPwd"   type="password" placeholder="비밀번호" autocomplete="current-password" required />
+  <div id="authBox" class="auth-modal" aria-modal="true" role="dialog" aria-label="로그인" hidden>
+    <div class="auth-modal-inner">
+      <button class="auth-close" id="authClose" aria-label="닫기">×</button>
+      <div class="eyebrow"><span id="authEyebrow">Sign in</span></div>
+      <h2 id="authTitle">로그인</h2>
+      <div class="auth-fields">
+        <input id="authUsername" type="text" placeholder="아이디" autocomplete="username" minlength="3" maxlength="32" required>
+        <input id="authPwd" type="password" placeholder="비밀번호" autocomplete="current-password" required>
+      </div>
+      <button id="authSubmit" class="button">로그인</button>
+      <p id="authMsg" class="auth-msg"></p>
+      <p class="auth-toggle-wrap"><a href="#" id="toggleAuth" class="auth-toggle">회원가입</a></p>
     </div>
-    <button id="authSubmit" class="button">로그인</button>
-    <p id="authMsg" class="auth-msg"></p>
-    <p class="auth-toggle-wrap"><a href="#" id="toggleAuth" class="auth-toggle">회원가입</a></p>
   </div>
-</div>
-<div id="authOverlay" class="auth-overlay" hidden></div>
-<div class="wrap"><nav aria-label="주 메뉴"><a class="brand" href="#" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a><div class="links"><a href="./index.html" aria-current="page">소개</a><a href="./app/writing.html">영작</a><a href="./app/copywriting.html">필사</a>
-        <a href="./app/features.html">기능</a>
-        <button id="authBtn" class="auth-nav-btn">로그인</button></div></nav>
-<main><section class="hero reveal"><div class="eyebrow">A little practice. Your own English.</div><div class="hero-top"><h1>영어를 읽는 사람에서,<br><span>내 문장을 쓰는 사람으로.</span></h1><div class="hero-aside"><p>시간 안에 한 문장을 더 넓게.<br>좋은 문장은 한 글자씩 더 깊게.<br>영어가 내 것이 되는 두 가지 연습.</p><div class="hero-actions"><a class="button" href="#expansion">영작 체험하기 <span>↗</span></a></div><div class="hero-note"><span>✓</span> 가입 없이, 아래에서 가볍게 체험하세요</div></div></div>
-<div class="workbench"><div class="expansion-art"><div class="art-label"><span>01 / 영작</span><span class="timer-tag">◷ &nbsp; 문장당 01:00</span></div><div class="stacked-sentences" aria-label="영작할 때마다 조금씩 길어지는 문장"><div class="sentence-card"><small>01</small><span>I read books.</span></div><div class="sentence-card"><small>02</small><span>I read books <b>before bed.</b></span></div><div class="sentence-card"><small>03</small><span>I read books before bed<br><b>every night.</b></span></div><div class="sentence-card"><small>04</small><span>I read books before bed every night,<br><b>even when I am busy.</b></span></div></div><div class="art-bottom"><span>작은 표현에, 나의 이야기를 더하는 시간.</span><span>↗</span></div></div><div class="copy-art"><div class="art-label"><span>02 / 필사</span><span>한 문장에 집중하기</span></div><p class="quote">Small steps.<br>Steady practice.<br><em>Your own words.</em></p><div class="copy-caption">작게 시작하고, 꾸준히 연습하고, 내 문장으로.</div><div class="copy-ghost">Small steps. Steady practice.<span class="caret"></span></div></div></div><div class="strip"><span>TWO WAYS TO MAKE ENGLISH YOURS</span><span>EXPAND YOUR THOUGHTS. &nbsp; COLLECT GOOD WORDS.</span></div></section>
-<section id="features"><div class="intro"><div><div class="eyebrow">The practice</div><h2>두 가지 연습, 서로 다른 방식.</h2></div><p>스스로 문장을 만들고, 좋은 문장을 따라 쓰고.<br>영작과 필사, 아래 데모에서 가볍게 체험해보세요.</p></div>
-<article class="feature" id="expansion"><div class="feature-copy"><span class="number">01 — 영작</span><h3>시간은 짧게.<br>문장은 조금 더 길게.</h3><p>한글 문장을 보고 영어 문장 전체를 써보세요. 문장마다 60초, Enter로 답을 확인해요. 고칠 부분은 짧은 힌트로 알려드려요. 정답이면 조금 더 긴 문장으로 이어져요.</p><div class="tags"><span>문장마다 60초</span><span>한글 보기 → 영작 → 더 긴 문장</span></div><a class="practice-link" href="./app/writing.html">영작 연습하러 가기 <span aria-hidden="true">→</span></a></div><div class="demo"><div class="demo-head"><span>영작 · 데모</span><span class="clock" id="clock" role="timer" aria-label="이 문장 남은 시간 60초" data-phase="normal" data-running="false"><span id="clockSeconds" aria-hidden="true">60</span></span></div><div class="prompt">아래 한글 문장을 영어로 써보세요.</div><div class="korean-prompt" id="koreanPrompt">나는 책을 읽는다.</div><div class="round-label" id="roundLabel">01 / 04</div><form id="expandForm"><div class="expand-surface" id="expandSurface"><div id="expandHighlight" aria-hidden="true"></div><textarea id="expandInput" aria-label="한글 문장을 영어로 쓰기" aria-describedby="expansionFeedback expandStatus" placeholder="여기를 누르면 60초 연습이 시작돼요." enterkeyhint="send" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" maxlength="500" rows="3"></textarea></div><div class="expansion-feedback-slot"><section id="expansionFeedback" class="answer-feedback" aria-label="영작 피드백" aria-live="polite" hidden><strong id="feedbackTitle"></strong><span id="feedbackReason"></span></section></div><span class="status" id="expandStatus" role="status">입력창을 눌러 시작 · Enter로 확인</span></form></div></article>
-<article class="feature" id="copywriting"><div class="feature-copy"><span class="number">02 — 필사</span><h3>좋은 문장을,<br>내 손으로 한 번 더.</h3><p>눈으로 지나쳤던 단어와 문장의 흐름을 천천히 따라 써보세요. 서두르지 않고, 문장 하나를 온전히 들여다보는 시간이에요.</p><div class="tags"><span>한 문장씩 차분하게</span><span>따라 쓰며 익히는 표현</span></div><a class="practice-link" href="./app/copywriting.html">필사 연습하러 가기 <span aria-hidden="true">→</span></a></div><div class="demo"><div class="demo-head"><span>필사 · 체험 문장</span><span id="copyCount">01 / 03</span></div><div class="copy-surface"><div class="copy-target" id="copyTarget" aria-hidden="true"></div><textarea id="copyInput" aria-label="희미하게 표시된 영어 문장 따라 쓰기" aria-describedby="copyReference copyHint" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea></div><p class="sr-only" id="copyReference">Every small step is a new beginning.</p><div class="translation" id="translation">작은 한 걸음마다 새로운 시작이 있어요.</div><div class="copy-hint" id="copyHint">문장 위를 눌러 입력하세요. 흐린 글자가 내 글씨로 채워집니다.</div><div class="demo-foot"><span class="status" id="copyStatus" role="status">0 / 36자 · 마침표까지 천천히 써보세요.</span><button class="button small-button" id="nextQuote">다음 문장 <span>→</span></button></div></div></article></section>
-<section class="closing"><div class="eyebrow">Make it yours</div><h2>오늘의 한 문장이,<br>내일의 내 영어가 되도록.</h2><p>거창한 시작 대신, 지금 한 문장부터 써보세요.</p><a class="button" href="#expansion">첫 문장 시작하기 <span>↗</span></a></section></main><footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><span>© 2026 typing</span></footer></div>
-<button class="chat-fab" id="chatFab" aria-label="학습 도우미 챗봇 열기" aria-expanded="false" aria-controls="chatPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-4 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 9h10M7 13h7"/></svg></button>
-<section class="chat-panel" id="chatPanel" aria-label="학습 도우미" hidden><div class="chat-header">typing · 학습 도우미<button id="closeChat" aria-label="챗봇 닫기">×</button></div><div class="chat-log" id="chatLog" role="log" aria-live="polite"><div class="message">궁금한 기능을 골라주세요. 문장확장·필사에서 세부 질문을 선택하거나 이용 방법을 입력할 수 있어요.</div></div><div class="chat-options" id="chatOptions" role="group" aria-label="도움말 항목"></div><form class="chat-form" id="chatForm"><input id="chatInput" aria-label="학습 방법 질문" placeholder="궁금한 연습 방법을 입력하세요" autocomplete="off" maxlength="500"><button type="submit">전송</button></form></section>
-<script src="./app/js/chatbot.js" defer></script>
-<script src="./app/js/writing.js"></script><script src="./app/js/copywriting.js"></script></body></html>
+  <div id="authOverlay" class="auth-overlay" hidden></div>
+
+  <div class="wrap home-wrap">
+    <nav aria-label="주 메뉴">
+      <a class="brand" href="#practice" aria-label="typing 홈">
+        <span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing
+      </a>
+      <div class="links">
+        <button id="authBtn" class="auth-nav-btn">로그인</button>
+      </div>
+    </nav>
+
+    <main>
+      <section id="practice" class="practice-lead" aria-labelledby="practiceTitle">
+        <div class="practice-lead-head">
+          <div class="eyebrow">A little practice. Real English.</div>
+          <h1 id="practiceTitle">실전 상황을,<br>내 영어로 표현해보세요.</h1>
+          <p>한글 상황을 보고 60초 안에 영어 문장을 작성합니다. 답안을 제출하면 바로 교정 피드백을 받고, 다음 상황으로 이어집니다.</p>
+        </div>
+
+        <section id="practiceGate" class="practice-gate practice-overlay" hidden>
+          <div class="practice-overlay-card">
+            <h1>오늘의 무료 체험 완료!</h1>
+            <p id="practiceGateMessage">5문장 무료 체험을 완료했습니다. 로그인하면 기록을 기기 간에 동기화할 수 있습니다.</p>
+            <div>
+              <button id="practiceLogin" class="button">로그인 / 회원가입</button>
+              <button id="continueTrialBtn" class="outline-button">게스트로 계속하기</button>
+            </div>
+          </div>
+        </section>
+
+        <main id="practiceContent" class="practice-card">
+          <div class="practice-status">
+            <span id="progressText">오늘 0문장</span>
+            <div class="practice-status-actions">
+              <span class="clock" id="clock" role="timer" aria-label="남은 시간 60초" data-phase="normal" data-running="false">
+                <span id="clockSeconds" aria-hidden="true">60</span>
+              </span>
+              <button type="button" id="btnFinishSession" class="drill-pill-btn">훈련 마치기</button>
+            </div>
+          </div>
+
+          <section class="writing-workspace" aria-label="영작 훈련">
+            <div class="demo">
+              <div class="demo-head">
+                <span>실전 영작</span>
+                <span>한글 상황 → 영어 문장</span>
+              </div>
+              <div class="korean-prompt" id="koreanPrompt">AI가 실전 상황을 준비하고 있습니다...</div>
+              <form id="expandForm">
+                <div class="expand-surface" id="expandSurface">
+                  <div id="expandHighlight" aria-hidden="true"></div>
+                  <textarea id="expandInput" aria-label="한글 문장을 영어로 쓰기" placeholder="클릭하면 타이머가 시작돼요. 영어 문장을 쓰고 Enter를 누르세요." enterkeyhint="send" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" maxlength="500" rows="2"></textarea>
+                </div>
+                <div id="feedbackContainer" class="expansion-feedback-slot" hidden>
+                  <section id="expansionFeedback" class="answer-feedback" aria-label="영작 피드백" aria-live="polite">
+                    <div class="feedback-heading">
+                      <strong id="feedbackTitle">교정 피드백</strong>
+                      <span id="resultBadge"></span>
+                    </div>
+                    <div class="corrected-answer">
+                      <span>교정된 원어민 문장</span>
+                      <div id="correctedSentence"></div>
+                    </div>
+                    <div id="feedbackReason" class="feedback-reason"></div>
+                    <div class="drill-action-bar">
+                      <button type="button" id="btnToggleFavorite" class="btn-favorite btn-favorite-icon" aria-label="즐겨찾기에 보관" aria-pressed="false" title="즐겨찾기에 보관">☆</button>
+                      <button type="button" id="btnNextDrill" class="button small-button">다음 문제 도전 → (Enter)</button>
+                    </div>
+                  </section>
+                </div>
+                <span class="status" id="expandStatus" role="status">입력창을 눌러 시작 · Enter로 즉시 채점</span>
+              </form>
+            </div>
+          </section>
+        </main>
+
+        <div id="summaryModal" class="practice-overlay" hidden>
+          <div class="summary-modal-card">
+            <div class="summary-modal-head">
+              <h2>오늘 훈련 결과</h2>
+              <button type="button" id="btnCloseSummary" class="auth-close">×</button>
+            </div>
+            <p class="summary-lead">오늘의 훈련 기록입니다.</p>
+            <div class="summary-stats-grid">
+              <div class="summary-stat-box"><div id="sumTotalSolved" class="summary-stat-num">0</div><div class="summary-stat-label">완료한 문장</div></div>
+              <div class="summary-stat-box"><div id="sumAccuracy" class="summary-stat-num">0%</div><div class="summary-stat-label">정답률</div></div>
+              <div class="summary-stat-box"><div id="sumAvgSpeed" class="summary-stat-num">0초</div><div class="summary-stat-label">평균 속도</div></div>
+            </div>
+            <h3 class="summary-title">오늘 연습한 표현</h3>
+            <div id="sumKeyExpressions" class="summary-list"></div>
+            <div class="summary-actions"><button type="button" id="btnSummaryContinue" class="button">훈련 계속하기 →</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project-intro" id="about" aria-labelledby="aboutTitle">
+        <div class="intro-heading">
+          <div class="eyebrow">The service</div>
+          <h2 id="aboutTitle">영어 면접 답변을 내 말로 만들어갑니다</h2>
+        </div>
+        <p class="project-lead">typing은 면접과 실무 상황에서 내 생각을 영어로 표현하는 연습을 합니다. 한글 상황을 보고 직접 문장을 써 보고, 자연스러운 답안과 수정 이유를 확인한 뒤 다음 상황으로 이어갑니다.</p>
+        <div class="service-detail">
+          <section>
+            <h3>무엇을 할 수 있나요?</h3>
+            <ul>
+              <li>면접이나 업무에서 나올 상황을 읽고 영어 문장을 직접 써 봅니다.</li>
+              <li>60초 안에 떠올려 답하면 말문이 막히는 상황에도 준비할 수 있습니다.</li>
+              <li>모범 답안과 한국어 피드백으로 왜 바꿔야 하는지 바로 확인합니다.</li>
+              <li>일상, 프로젝트, 팀 협업, 실수와 회고처럼 다양한 이야기로 연습 범위를 넓힙니다.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>어떻게 실력 향상을 돕나요?</h3>
+            <ol>
+              <li>실제로 자주 쓰는 상황과 문장 패턴을 하나씩 익힙니다.</li>
+              <li>틀린 말과 어색한 표현은 이유를 확인한 뒤 다른 상황에서 다시 만납니다.</li>
+              <li>어려웠던 문장은 자연스럽게 더 자주 다시 나오고, 익숙해진 문장은 간격을 둡니다.</li>
+              <li>짧은 문장에서 원인과 결과를 설명하는 문장까지 조금씩 길게 확장합니다.</li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <section class="architecture" id="architecture" aria-labelledby="architectureTitle">
+        <div class="architecture-heading">
+          <div class="eyebrow">Architecture</div>
+          <h2 id="architectureTitle">서비스 구조</h2>
+        </div>
+        <figure class="architecture-diagram" aria-label="GitHub에서 Render로 배포되고, 브라우저가 Python API를 거쳐 AI와 데이터베이스에 연결되는 구조">
+          <svg viewBox="0 0 1120 430" role="img" aria-labelledby="architectureDiagramTitle architectureDiagramDesc">
+            <title id="architectureDiagramTitle">typing 서비스 아키텍처</title>
+            <desc id="architectureDiagramDesc">GitHub main의 소스가 Docker 이미지를 거쳐 Render에 배포됩니다. 사용자 브라우저는 server.py API를 호출하고, 서버는 Groq와 Gemini로 문제 생성과 채점, SQLite 또는 Supabase에 학습 기록을 처리합니다.</desc>
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#ea7b5c"></path>
+              </marker>
+              <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#6556ad"></path>
+              </marker>
+            </defs>
+
+            <text class="diagram-kicker" x="70" y="52">배포 과정</text>
+            <path class="diagram-arrow" d="M220 84 H330" marker-end="url(#arrow)"></path>
+            <path class="diagram-arrow" d="M510 84 H620" marker-end="url(#arrow)"></path>
+
+            <g class="diagram-node">
+              <rect x="70" y="58" width="150" height="52" rx="7"></rect>
+              <text x="145" y="80" text-anchor="middle" class="node-title">GitHub main</text>
+              <text x="145" y="98" text-anchor="middle" class="node-meta">소스 · 커리큘럼</text>
+            </g>
+            <g class="diagram-node">
+              <rect x="360" y="58" width="150" height="52" rx="7"></rect>
+              <text x="435" y="80" text-anchor="middle" class="node-title">Docker 이미지</text>
+              <text x="435" y="98" text-anchor="middle" class="node-meta">실행 환경 고정</text>
+            </g>
+            <g class="diagram-node primary">
+              <rect x="650" y="58" width="150" height="52" rx="7"></rect>
+              <text x="725" y="80" text-anchor="middle" class="node-title">Render</text>
+              <text x="725" y="98" text-anchor="middle" class="node-meta">Public Web Service</text>
+            </g>
+
+            <path class="diagram-line dashed" d="M725 110 V146"></path>
+            <text class="diagram-kicker" x="70" y="176">실행 구조</text>
+
+            <g class="diagram-node">
+              <rect x="70" y="202" width="190" height="126" rx="8"></rect>
+              <text x="165" y="232" text-anchor="middle" class="node-title">브라우저</text>
+              <text x="165" y="260" text-anchor="middle" class="node-meta">index.html · CSS · JavaScript</text>
+              <line x1="92" y1="278" x2="238" y2="278" class="node-divider"></line>
+              <text x="165" y="300" text-anchor="middle" class="node-meta">영작 입력 · 타이머 · 피드백</text>
+            </g>
+
+            <path class="diagram-arrow" d="M260 265 H350" marker-end="url(#arrow)"></path>
+            <text class="edge-label" x="305" y="250" text-anchor="middle">HTTPS API</text>
+
+            <g class="diagram-node primary">
+              <rect x="380" y="202" width="230" height="126" rx="8"></rect>
+              <text x="495" y="232" text-anchor="middle" class="node-title">Python API 서버</text>
+              <text x="495" y="260" text-anchor="middle" class="node-meta">server.py · 인증 · 라우팅</text>
+              <line x1="402" y1="278" x2="588" y2="278" class="node-divider"></line>
+              <text x="495" y="300" text-anchor="middle" class="node-meta">문제 선택 · 채점 · 복습 상태 갱신</text>
+            </g>
+
+            <path class="diagram-arrow purple" d="M610 246 H700" marker-end="url(#arrowPurple)"></path>
+            <text class="edge-label" x="655" y="231" text-anchor="middle">문제 생성</text>
+
+            <g class="diagram-node ai">
+              <rect x="730" y="202" width="150" height="126" rx="8"></rect>
+              <text x="805" y="232" text-anchor="middle" class="node-title">AI API</text>
+              <text x="805" y="260" text-anchor="middle" class="node-meta">Groq · Gemini</text>
+              <line x1="752" y1="278" x2="858" y2="278" class="node-divider"></line>
+              <text x="805" y="300" text-anchor="middle" class="node-meta">상황 생성 · 영작 평가</text>
+            </g>
+
+            <path class="diagram-arrow" d="M610 294 H700" marker-end="url(#arrow)"></path>
+            <text class="edge-label" x="655" y="320" text-anchor="middle">학습 기록</text>
+
+            <g class="diagram-node database">
+              <rect x="730" y="348" width="150" height="52" rx="7"></rect>
+              <text x="805" y="370" text-anchor="middle" class="node-title">학습 데이터</text>
+              <text x="805" y="388" text-anchor="middle" class="node-meta">SQLite · Supabase</text>
+            </g>
+
+            <path class="diagram-line db-line" d="M610 265 C670 265 655 374 730 374"></path>
+            <g class="diagram-node data-detail">
+              <rect x="380" y="348" width="230" height="52" rx="7"></rect>
+              <text x="495" y="370" text-anchor="middle" class="node-title">저장 정보</text>
+              <text x="495" y="388" text-anchor="middle" class="node-meta">문장 · 정답여부 · 표현 · 소요시간 · 복습진도</text>
+            </g>
+          </svg>
+        </figure>
+      </section>
+    </main>
+
+    <footer>
+      <span class="footer-brand">typing</span>
+      <span>작은 문장이 쌓이는 곳.</span>
+      <span>© 2026 typing</span>
+    </footer>
+  </div>
+
+  <button class="chat-fab" id="chatFab" aria-label="학습 도우미 챗봇 열기" aria-expanded="false" aria-controls="chatPanel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-4 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 9h10M7 13h7"/></svg>
+  </button>
+  <section class="chat-panel" id="chatPanel" aria-label="학습 도우미" hidden>
+    <div class="chat-header">typing · 학습 도우미<button id="closeChat" aria-label="챗봇 닫기">×</button></div>
+    <div class="chat-log" id="chatLog" role="log" aria-live="polite"><div class="message">영작 훈련이나 이용 방법을 질문해 주세요.</div></div>
+    <div class="chat-options" id="chatOptions" role="group" aria-label="도움말 항목"></div>
+    <form class="chat-form" id="chatForm"><input id="chatInput" aria-label="학습 방법 질문" placeholder="궁금한 연습 방법을 입력하세요" autocomplete="off" maxlength="500"><button type="submit">전송</button></form>
+  </section>
+</body>
+</html>

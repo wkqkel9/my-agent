@@ -1,5 +1,6 @@
 # 현재 구현 상태
 
+- 공개 화면은 `index.html` 한 페이지다. 메인 기능은 실전 영작 훈련이고, 아래에 서비스 소개와 동작·배포 아키텍처를 보여 준다.
 - 2회차 FAQ 자료와 3회차 영문법 검색 자료는 분리되어 있다.
 - `settings.py`, `embed.py`, `compare.py`, `search.py`가 로컬 임베딩 검색을 담당한다.
 - `main.py`의 메뉴 3에서 `data/grammar_guide.txt`를 검색한다.

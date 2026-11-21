@@ -5,10 +5,10 @@
 ## 구조
 
 ```text
-index.html          소개 · 영작/필사 데모
-app/writing.html    영작 연습 전용 페이지
-app/copywriting.html 필사 연습 전용 페이지
-app/features.html   회차별 추가 기능 기록
+index.html          영작 훈련 · 서비스 소개 · 동작 구조
+app/writing.html    기존 영작 페이지 (메뉴에서 제외)
+app/copywriting.html 기존 필사 페이지 (메뉴에서 제외)
+app/features.html   기존 기능 기록 페이지 (메뉴에서 제외)
 app/js/chatbot.js   웹 챗봇 UI (로컬/Docker 백엔드 연동)
 server.py           정적 웹 서빙 + main.py/bot.py 연결 서버
 main.py             로컬 Python Agent 메뉴
