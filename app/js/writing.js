@@ -4,9 +4,7 @@
 
   // 2. 상태 변수
   let currentDrill = null;
-  let currentLevel = localStorage.getItem('drill_level') || 'easy';
-  let dailyGoal = parseInt(localStorage.getItem('daily_goal') || '50', 10);
-  let timerLimit = parseInt(localStorage.getItem('timer_limit') || '45', 10);
+  const timerLimit = 60;
   let sessionSolved = 0;
   let sessionCorrect = 0;
   let sessionTimeTotal = 0;
@@ -23,9 +21,15 @@
   let startTime = 0;
 
   let learnedExpressions = [];
+  const dailyStatsKey = `training_daily_${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })}`;
+  let dailyStats = JSON.parse(localStorage.getItem(dailyStatsKey) || '{"solved":0,"correct":0,"timeTotal":0,"expressions":[]}');
+  let guestLearnerId = localStorage.getItem('training_guest_id');
+  if (!guestLearnerId) {
+    guestLearnerId = `guest-${crypto.randomUUID()}`;
+    localStorage.setItem('training_guest_id', guestLearnerId);
+  }
 
   // DOM Elements
-  const categoryBadge = document.querySelector('#categoryBadge');
   const koreanPrompt = document.querySelector('#koreanPrompt');
   const clock = document.querySelector('#clock');
   const clockSeconds = document.querySelector('#clockSeconds');
@@ -41,32 +45,22 @@
   const btnNextDrill = document.querySelector('#btnNextDrill');
 
   const progressText = document.querySelector('#progressText');
-  const progressPercent = document.querySelector('#progressPercent');
-  const drillProgressBar = document.querySelector('#drillProgressBar');
-  const streakBadge = document.querySelector('#streakBadge');
   const nudgeBanner = document.querySelector('#nudgeBanner');
   const nudgeText = document.querySelector('#nudgeText');
-  const wrongCountBadge = document.querySelector('#wrongCountBadge');
-
-  const btnOpenWrong = document.querySelector('#btnOpenWrong');
-  const btnFinishSession = document.querySelector('#btnFinishSession');
-  const summaryModal = document.querySelector('#summaryModal');
-  const btnCloseSummary = document.querySelector('#btnCloseSummary');
-  const btnSummaryContinue = document.querySelector('#btnSummaryContinue');
-  const wrongModal = document.querySelector('#wrongModal');
-  const btnCloseWrong = document.querySelector('#btnCloseWrong');
-  const btnClearWrong = document.querySelector('#btnClearWrong');
-  const btnRetryWrong = document.querySelector('#btnRetryWrong');
 
   const practiceGate = document.querySelector('#practiceGate');
   const practiceContent = document.querySelector('#practiceContent');
   const continueTrialBtn = document.querySelector('#continueTrialBtn');
+  const btnFinishSession = document.querySelector('#btnFinishSession');
+  const summaryModal = document.querySelector('#summaryModal');
+  const btnCloseSummary = document.querySelector('#btnCloseSummary');
+  const btnSummaryContinue = document.querySelector('#btnSummaryContinue');
 
   // 3. 초기화 및 이벤트 리스너 설정
   async function init() {
     if (practiceGate) practiceGate.hidden = true;
     if (practiceContent) practiceContent.hidden = false;
-    updateBadges();
+    updateProgress();
     setupControls();
     await fetchAndRenderQuestion();
   }
@@ -74,7 +68,6 @@
   // AI로 문제 받아오기 (Gemini → Groq 순, 실패 시 에러 표시)
   async function fetchAndRenderQuestion(reviewExpression = null) {
     koreanPrompt.textContent = '⏳ AI가 새 문제를 생성하는 중...';
-    categoryBadge.textContent = '...';
     feedbackContainer.hidden = true;
     expandInput.value = '';
     expandStatus.textContent = '입력창을 눌러 시작 · Enter로 즉시 채점';
@@ -82,28 +75,34 @@
     stopTimer();
     clockSeconds.textContent = String(timerLimit);
     clock.dataset.phase = 'normal';
+    clock.style.setProperty('--timer-progress', '100');
+    clock.setAttribute('aria-label', `남은 시간 ${timerLimit}초`);
 
     try {
+      const token = localStorage.getItem('jwt');
       const res = await fetch('/api/generate_question', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
-          level: currentLevel,
-          review_expression: reviewExpression || null
+          review_expression: reviewExpression || null,
+          user_id: guestLearnerId
         })
       });
-      if (res.ok) {
-        const q = await res.json();
-        if (q.korean) {
-          currentDrill = q;
-          applyDrillToUI(currentDrill);
-          updateProgress();
-          return;
-        }
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        koreanPrompt.textContent = `❌ 문제 생성 실패: ${payload.error || '서버 오류'}`;
+        expandStatus.textContent = '잠시 후 다시 시도해 주세요.';
+        return;
       }
-      const err = await res.json().catch(() => ({}));
-      koreanPrompt.textContent = `❌ 문제 생성 실패: ${err.error || '서버 오류'}`;
-      expandStatus.textContent = '.env에 GROQ_API_KEY 또는 GEMINI_API_KEY를 설정해 주세요.';
+      if (!payload.korean) {
+        koreanPrompt.textContent = '❌ 생성된 문제 형식이 올바르지 않습니다.';
+        expandStatus.textContent = '다시 시도해 주세요.';
+        return;
+      }
+
+      currentDrill = payload;
+      applyDrillToUI(currentDrill);
+      updateProgress();
     } catch (e) {
       koreanPrompt.innerHTML = '❌ 연결이 일시적으로 지연되었습니다. <a href="#" id="btnRetryQuestion" style="color:var(--orange); text-decoration:underline; font-size:15px; margin-left:6px;">다시 시도 🔄</a>';
       expandStatus.textContent = '클릭하여 다시 문제를 받아오세요.';
@@ -115,66 +114,21 @@
   }
 
   function applyDrillToUI(drill) {
-    categoryBadge.textContent = drill.category || '실전 영작 💼';
     koreanPrompt.textContent = drill.korean || '';
     expandInput.value = '';
     feedbackContainer.hidden = true;
     expandStatus.textContent = '입력창을 눌러 시작 · Enter로 즉시 채점';
     isWaitingNext = false;
     const isFav = favoriteNotes.some(f => f.korean === drill.korean);
-    btnToggleFavorite.classList.toggle('active', isFav);
-    btnToggleFavorite.textContent = isFav ? '⭐ 즐겨찾기 완료' : '⭐ 즐겨찾기에 보관';
+    renderFavoriteButton(isFav);
     stopTimer();
     clockSeconds.textContent = String(timerLimit);
     clock.dataset.phase = 'normal';
+    clock.style.setProperty('--timer-progress', '100');
+    clock.setAttribute('aria-label', `남은 시간 ${timerLimit}초`);
   }
 
   function setupControls() {
-    // 난이도 버튼들
-    document.querySelectorAll('#levelGroup button').forEach(btn => {
-      const lvl = btn.dataset.level;
-      if (lvl === currentLevel) btn.classList.add('active');
-      else btn.classList.remove('active');
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#levelGroup button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentLevel = lvl;
-        localStorage.setItem('drill_level', lvl);
-        fetchAndRenderQuestion();
-      });
-    });
-
-    // 목표량 버튼들
-    document.querySelectorAll('#goalGroup button').forEach(btn => {
-      const g = parseInt(btn.dataset.goal, 10);
-      if (g === dailyGoal) btn.classList.add('active');
-      else btn.classList.remove('active');
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#goalGroup button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        dailyGoal = g;
-        localStorage.setItem('daily_goal', String(g));
-        updateProgress();
-      });
-    });
-
-    // 타이머 버튼들
-    document.querySelectorAll('#timerGroup button').forEach(btn => {
-      const t = parseInt(btn.dataset.time, 10);
-      if (t === timerLimit) btn.classList.add('active');
-      else btn.classList.remove('active');
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#timerGroup button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        timerLimit = t;
-        localStorage.setItem('timer_limit', String(t));
-        if (!timerRunning) {
-          remainingSeconds = t;
-          clockSeconds.textContent = String(t);
-        }
-      });
-    });
-
     // 입력창 포커스 시 타이머 가동
     expandInput.addEventListener('focus', () => {
       if (!timerRunning && !isWaitingNext) startTimer();
@@ -198,13 +152,6 @@
 
     // 즐겨찾기 토글
     btnToggleFavorite.addEventListener('click', toggleFavorite);
-
-    // 오답노트 & 요약 모달 트리거
-    btnOpenWrong.addEventListener('click', openWrongModal);
-    btnCloseWrong.addEventListener('click', () => wrongModal.hidden = true);
-    btnClearWrong.addEventListener('click', clearWrongNotes);
-    btnRetryWrong.addEventListener('click', retryWrongNotes);
-
     btnFinishSession.addEventListener('click', openSummaryModal);
     btnCloseSummary.addEventListener('click', () => summaryModal.hidden = true);
     btnSummaryContinue.addEventListener('click', () => {
@@ -231,10 +178,14 @@
     clock.dataset.running = 'true';
     clock.dataset.phase = 'normal';
     clockSeconds.textContent = String(remainingSeconds);
+    clock.style.setProperty('--timer-progress', '100');
+    clock.setAttribute('aria-label', `남은 시간 ${remainingSeconds}초`);
 
     timerInterval = setInterval(() => {
       remainingSeconds--;
       clockSeconds.textContent = String(Math.max(0, remainingSeconds));
+      clock.style.setProperty('--timer-progress', String(Math.max(0, Math.round((remainingSeconds / timerLimit) * 100))));
+      clock.setAttribute('aria-label', `남은 시간 ${Math.max(0, remainingSeconds)}초`);
       if (remainingSeconds <= 10) clock.dataset.phase = 'urgent';
       else if (remainingSeconds <= 20) clock.dataset.phase = 'warning';
       else clock.dataset.phase = 'normal';
@@ -274,16 +225,22 @@
     // 평가 요청 (AI 서버 우선 ➔ 최소 폴백)
     let evalResult = null;
     try {
+      const token = localStorage.getItem('jwt');
       const res = await fetch('/api/assess', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           korean: currentDrill.korean,
           target_expression: currentDrill.target_expression,
           reference_answer: currentDrill.reference_answer || '',
           category: currentDrill.category || '',
           user_text: text,
-          time_spent: timeSpent
+          time_spent: timeSpent,
+          user_id: guestLearnerId,
+          expression_id: currentDrill.expression_id || '',
+          training_mode: currentDrill.training_mode || '',
+          question_type: currentDrill.question_type || '',
+          cefr_level: currentDrill.cefr_level || 'B1'
         })
       });
       if (res.ok) {
@@ -352,11 +309,14 @@
 
     sessionSolved++;
     sessionTimeTotal += timeSpent;
+    dailyStats.solved++;
+    dailyStats.timeTotal += timeSpent;
     guestPracticeCount++;
     localStorage.setItem('guest_practice_count', String(guestPracticeCount));
 
     if (res.is_correct) {
       sessionCorrect++;
+      dailyStats.correct++;
       currentStreak++;
       feedbackTitle.textContent = '✅ 정답 & 훌륭한 표현!';
       feedbackTitle.style.color = '#27ae60';
@@ -381,15 +341,18 @@
     }
 
     correctedSentence.textContent = res.corrected_sentence || currentDrill.reference_answer;
-    feedbackReason.textContent = res.short_reason;
+    renderFeedbackPoints(res.feedback_points, res.short_reason);
 
     if (currentDrill.target_expression && !learnedExpressions.includes(currentDrill.target_expression)) {
       learnedExpressions.push(currentDrill.target_expression);
     }
+    if (currentDrill.target_expression && !dailyStats.expressions.includes(currentDrill.target_expression)) {
+      dailyStats.expressions.push(currentDrill.target_expression);
+    }
+    localStorage.setItem(dailyStatsKey, JSON.stringify(dailyStats));
 
     updateProgress();
     expandStatus.textContent = 'Enter를 누르면 다음 문제로 즉시 넘어갑니다 ➔';
-    btnNextDrill.focus();
 
     // 게스트 5회 무료 체험 안내
     const token = localStorage.getItem('jwt');
@@ -405,38 +368,11 @@
 
   // 8. 동기부여 넛지 및 프로그레스 갱신
   function updateProgress() {
-    progressText.textContent = `${sessionSolved} / ${dailyGoal}`;
-    const pct = Math.min(100, Math.round((sessionSolved / dailyGoal) * 100));
-    progressPercent.textContent = `${pct}%`;
-    drillProgressBar.style.width = `${pct}%`;
-    streakBadge.textContent = `🔥 오늘 연속 ${currentStreak}개 성공!`;
-
-    // 유도 넛지 메시지
-    let msg = '첫 번째 문장을 영작하고 오늘의 훈련을 시작하세요! 🚀';
-    if (sessionSolved === 0) {
-      msg = '첫 문장을 영작하고 뇌의 영어 근육을 깨워보세요! 🚀';
-    } else if (sessionSolved < 5) {
-      msg = '좋은 출발이에요! 타임어택 속도를 조금씩 올려볼까요? ⚡';
-    } else if (sessionSolved === 5) {
-      msg = '5개 돌파! 핵심 표현이 입에 붙기 시작했어요 🔥';
-    } else if (sessionSolved < dailyGoal / 2) {
-      msg = `꾸준히 잘 달리고 있어요! 오늘 목표까지 ${dailyGoal - sessionSolved}개 남았어요 💪`;
-    } else if (sessionSolved === Math.floor(dailyGoal / 2)) {
-      msg = '절반 돌파! 이미 절반이나 해냈어요, 계속 가봅시다! 🏃';
-    } else if (sessionSolved < dailyGoal) {
-      const left = dailyGoal - sessionSolved;
-      msg = left <= 5 ? `목표까지 딱 ${left}개! 오늘 완주가 코앞이에요 🎯` : `거의 다 왔어요! ${left}개만 더 채워볼까요? ✨`;
-    } else if (sessionSolved === dailyGoal) {
-      msg = '🎉 축하합니다! 오늘 목표 달성 완료! 보너스로 딱 1문제 더 도전해볼까요? ⭐';
-    } else {
-      msg = `대단해요! 목표를 초과 달성 중이에요 (+${sessionSolved - dailyGoal}개) 👑`;
-    }
-    nudgeText.textContent = msg;
-    updateBadges();
+    progressText.textContent = `오늘 ${dailyStats.solved}문장`;
   }
 
   function updateBadges() {
-    wrongCountBadge.textContent = String(wrongNotes.length);
+    // 오답은 자동 복습 큐에서 관리하며 별도 설정 버튼으로 표시하지 않는다.
   }
 
   // 9. 즐겨찾기 토글
@@ -446,8 +382,7 @@
     let isFav = false;
     if (idx >= 0) {
       favoriteNotes.splice(idx, 1);
-      btnToggleFavorite.classList.remove('active');
-      btnToggleFavorite.textContent = '⭐ 즐겨찾기에 보관';
+      renderFavoriteButton(false);
       isFav = false;
     } else {
       favoriteNotes.push({
@@ -457,11 +392,31 @@
         expression: currentDrill.target_expression,
         reference: currentDrill.reference_answer
       });
-      btnToggleFavorite.classList.add('active');
-      btnToggleFavorite.textContent = '⭐ 즐겨찾기 완료';
+      renderFavoriteButton(true);
       isFav = true;
     }
     localStorage.setItem('favorite_notes', JSON.stringify(favoriteNotes));
+  }
+
+  function renderFavoriteButton(isFav) {
+    btnToggleFavorite.classList.toggle('active', isFav);
+    btnToggleFavorite.textContent = isFav ? '★' : '☆';
+    btnToggleFavorite.setAttribute('aria-pressed', String(isFav));
+    btnToggleFavorite.setAttribute('aria-label', isFav ? '즐겨찾기에서 제거' : '즐겨찾기에 보관');
+    btnToggleFavorite.title = btnToggleFavorite.getAttribute('aria-label');
+  }
+
+  function renderFeedbackPoints(points, fallbackReason) {
+    const items = Array.isArray(points) && points.length
+      ? points
+      : String(fallbackReason || '').split(/\n+/).filter(Boolean);
+    feedbackReason.replaceChildren();
+    (items.length ? items : ['교정문을 참고해 다음 문장에서 다시 시도해 보세요.']).slice(0, 4).forEach(point => {
+      const item = document.createElement('p');
+      item.className = 'feedback-point';
+      item.textContent = point;
+      feedbackReason.appendChild(item);
+    });
   }
 
   // 10. 오답 노트 관리
@@ -526,15 +481,15 @@
 
   // 11. 세션 종료 요약 모달
   function openSummaryModal() {
-    document.querySelector('#sumTotalSolved').textContent = `${sessionSolved}개`;
-    const acc = sessionSolved ? Math.round((sessionCorrect / sessionSolved) * 100) : 0;
+    document.querySelector('#sumTotalSolved').textContent = `${dailyStats.solved}개`;
+    const acc = dailyStats.solved ? Math.round((dailyStats.correct / dailyStats.solved) * 100) : 0;
     document.querySelector('#sumAccuracy').textContent = `${acc}%`;
-    const avg = sessionSolved ? Math.round(sessionTimeTotal / sessionSolved) : 0;
+    const avg = dailyStats.solved ? Math.round(dailyStats.timeTotal / dailyStats.solved) : 0;
     document.querySelector('#sumAvgSpeed').textContent = `${avg}초`;
 
     const keyList = document.querySelector('#sumKeyExpressions');
     keyList.innerHTML = '';
-    const uniqueExp = [...new Set(learnedExpressions)].filter(Boolean);
+    const uniqueExp = dailyStats.expressions.filter(Boolean);
     if (uniqueExp.length === 0) {
       keyList.innerHTML = '<div style="color:var(--muted); font-size:12px;">아직 완료한 문장이 없습니다.</div>';
     } else {

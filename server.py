@@ -3,6 +3,9 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os, urllib.error, urllib.request
 import re
+import random
+import sqlite3
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote, unquote, urlparse
 
@@ -11,6 +14,36 @@ import search as semantic_search
 
 ROOT = Path(__file__).resolve().parent
 SEARCH_INDEX = None
+CURRICULUM_PATH = ROOT / "data" / "curriculum.json"
+
+
+def _load_curriculum():
+    raw = json.loads(CURRICULUM_PATH.read_text(encoding="utf-8"))
+    expressions = []
+    for day in raw["days"]:
+        for expression_id, phrase, meaning in day["expressions"]:
+            expressions.append({
+                "id": expression_id,
+                "day": day["day"],
+                "theme": day["theme"],
+                "grammar_focus": day.get("grammar_focus", ""),
+                "sentence_roles": day.get("sentence_roles", []),
+                "phrase": phrase,
+                "meaning": meaning,
+            })
+    return expressions
+
+
+CURRICULUM = _load_curriculum()
+CURRICULUM_BY_ID = {item["id"]: item for item in CURRICULUM}
+CEFR_LEVELS = ["A2", "B1", "B1+", "B2", "B2+"]
+CEFR_GUIDES = {
+    "A2": "Use 6 to 9 clear words. Describe one event with a simple past sentence.",
+    "B1": "Use 10 to 14 words. Connect one situation and one action with a basic linker such as because, when, or so.",
+    "B1+": "Use 12 to 18 words. Use two connected ideas and naturally include a subordinate clause or the requested grammar.",
+    "B2": "Use 16 to 22 words. Make a concise STAR-style sentence with a precise connector, cause, action, or result.",
+    "B2+": "Use 20 to 28 words. Explain a nuanced professional choice, result, or trade-off without sounding overly formal.",
+}
 
 def _load_env_file():
     env_path = ROOT / ".env"
@@ -25,7 +58,7 @@ def _load_env_file():
 
 _load_env_file()
 
-# ----- Authentication & Authorization helpers -----
+# ----- Authentication helpers -----
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
 
@@ -58,19 +91,6 @@ def _auth_user(self):
         except Exception:
             return None
     return None
-
-def _check_permission(self, user_id: str, feature: str) -> bool:
-    auth = self.headers.get("Authorization", "")
-    token = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
-    try:
-        rows = _supabase(
-            "/rest/v1/permissions?select=allowed&user_id=eq." + quote(user_id) +
-            "&feature=eq." + quote(feature) + "&limit=1",
-            token=token,
-        )
-        return bool(rows and rows[0].get("allowed") is True)
-    except Exception:
-        return False
 
 def _username_email(username: str) -> str:
     username = username.strip().lower()
@@ -174,15 +194,6 @@ class AgentHandler(SimpleHTTPRequestHandler):
         if req_path == "/api/health":
             self._send_json(HTTPStatus.OK, {"ok": True, "supabase_configured": bool(SUPABASE_URL and SUPABASE_ANON_KEY)})
             return
-        if req_path == "/api/preferences":
-            self._handle_preferences_get()
-            return
-        if req_path == "/api/access-summary":
-            self._handle_access_summary()
-            return
-        if req_path == "/api/access-runs":
-            self._handle_access_runs()
-            return
         if req_path == "/api/drill_history":
             self._handle_drill_history_get()
             return
@@ -206,17 +217,8 @@ class AgentHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/signup":
             self._handle_signup()
             return
-        if parsed.path == "/api/has_permission":
-            self._handle_has_permission()
-            return
         if parsed.path == "/api/logout":
             self._handle_logout()
-            return
-        if parsed.path == "/api/practice-access":
-            self._handle_practice_access()
-            return
-        if parsed.path == "/api/preferences":
-            self._handle_preferences_put()
             return
         if parsed.path == "/api/menu":
             self._handle_menu()
@@ -400,105 +402,203 @@ class AgentHandler(SimpleHTTPRequestHandler):
             self._send_json(HTTPStatus.UNAUTHORIZED, {"error": str(error)}); return
         self._send_json(HTTPStatus.OK, {"token": result.get("access_token"), "refresh_token": result.get("refresh_token"), "expires_at": result.get("expires_at")})
 
-    def _handle_has_permission(self):
-        user_id = _auth_user(self)
-        if not user_id:
-            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "Login required"}); return
-        try: feature = str(self._read_json().get("feature", ""))
-        except Exception: feature = ""
-        self._send_json(HTTPStatus.OK, {"allowed": _check_permission(self, user_id, feature)})
-
-    def _handle_practice_access(self):
-        user_id = _auth_user(self)
-        if not user_id:
-            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인이 필요합니다."}); return
-        try: feature = str(self._read_json().get("feature", ""))
-        except Exception: feature = ""
-        if feature not in ("writing", "copywriting"):
-            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "잘못된 기능입니다."}); return
-        if not _check_permission(self, user_id, feature):
-            self._record_access(user_id, feature, "denied")
-            self._send_json(HTTPStatus.FORBIDDEN, {"error": "이 연습을 이용할 권한이 없습니다."}); return
-        self._record_access(user_id, feature, "ok")
-        self._send_json(HTTPStatus.OK, {"allowed": True})
-
-    def _handle_preferences_get(self):
-        token = self._bearer_token()
-        user_id = _auth_user(self)
-        if not user_id:
-            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인이 필요합니다."}); return
-        try:
-            rows = _supabase("/rest/v1/preferences?select=default_location,location_kind&limit=1", token=token)
-        except Exception as error:
-            self._send_json(HTTPStatus.BAD_GATEWAY, {"error": str(error)}); return
-        self._send_json(HTTPStatus.OK, rows[0] if rows else {"default_location":"", "location_kind":""})
-
-    def _handle_access_summary(self):
-        user_id = _auth_user(self)
-        if not user_id:
-            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인이 필요합니다."})
-            return
-        token = self._bearer_token()
-        try:
-            rows = _supabase(
-                "/rest/v1/access_runs?select=feature,outcome&user_id=eq." + quote(user_id) + "&limit=10000",
-                token=token,
+    def _ensure_training_schema(self, db):
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS drill_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT,
+                user_id TEXT,
+                category TEXT,
+                korean TEXT,
+                user_text TEXT,
+                is_correct INTEGER,
+                time_spent INTEGER,
+                favorite INTEGER DEFAULT 0,
+                expression_id TEXT,
+                training_mode TEXT,
+                question_type TEXT
             )
-        except Exception as error:
-            self._send_json(HTTPStatus.BAD_GATEWAY, {"error": str(error)})
-            return
-        summary = {feature: {"allowed": 0, "denied": 0} for feature in ("writing", "copywriting")}
-        for row in rows:
-            feature = row.get("feature")
-            outcome = row.get("outcome")
-            if feature in summary and outcome in ("ok", "denied"):
-                summary[feature]["allowed" if outcome == "ok" else "denied"] += 1
-        self._send_json(HTTPStatus.OK, {"summary": summary})
-
-    def _handle_access_runs(self):
-        user_id = _auth_user(self)
-        if not user_id:
-            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인이 필요합니다."})
-            return
-        try:
-            limit = max(1, min(int(urlparse(self.path).query.split("limit=")[-1].split("&")[0]), 100)) if "limit=" in self.path else 30
-        except ValueError:
-            limit = 30
-        token = self._bearer_token()
-        try:
-            rows = _supabase(
-                "/rest/v1/access_runs?select=id,feature,outcome,created_at&user_id=eq." + quote(user_id) +
-                "&order=created_at.desc&limit=" + str(limit),
-                token=token,
+        """)
+        existing = {row[1] for row in db.execute("PRAGMA table_info(drill_history)")}
+        for name in ("expression_id", "training_mode", "question_type"):
+            if name not in existing:
+                db.execute(f"ALTER TABLE drill_history ADD COLUMN {name} TEXT")
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS expression_progress (
+                user_id TEXT NOT NULL,
+                expression_id TEXT NOT NULL,
+                stage TEXT NOT NULL DEFAULT 'new',
+                correct_count INTEGER NOT NULL DEFAULT 0,
+                partial_count INTEGER NOT NULL DEFAULT 0,
+                incorrect_count INTEGER NOT NULL DEFAULT 0,
+                next_due_sequence INTEGER,
+                next_due_at TEXT,
+                last_seen_sequence INTEGER,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, expression_id)
             )
-        except Exception as error:
-            self._send_json(HTTPStatus.BAD_GATEWAY, {"error": str(error)})
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS learner_profile (
+                user_id TEXT PRIMARY KEY,
+                cefr_level TEXT NOT NULL DEFAULT 'B1',
+                success_streak INTEGER NOT NULL DEFAULT 0,
+                struggle_streak INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL
+            )
+        """)
+
+    def _uses_supabase_training(self, user_id):
+        """Production data lives in Supabase only for a verified logged-in user."""
+        return bool(SUPABASE_URL and SUPABASE_ANON_KEY and user_id and user_id == _auth_user(self))
+
+    def _remote_rows(self, path, user_id):
+        return _supabase(path, token=self._bearer_token())
+
+    def _get_learner_profile(self, user_id):
+        if self._uses_supabase_training(user_id):
+            rows = self._remote_rows(
+                "/rest/v1/learner_profiles?select=*&user_id=eq." + quote(user_id) + "&limit=1", user_id
+            )
+            if rows:
+                return rows[0]
+            profile = {"user_id": user_id, "cefr_level": "B1", "success_streak": 0, "struggle_streak": 0}
+            _supabase("/rest/v1/learner_profiles", method="POST", token=self._bearer_token(), payload=profile,
+                      extra_headers={"Prefer": "return=minimal"})
+            return profile
+        db_path = ROOT / "data" / "agent.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(db_path) as db:
+            self._ensure_training_schema(db)
+            db.row_factory = sqlite3.Row
+            row = db.execute(
+                "SELECT * FROM learner_profile WHERE user_id = ?", (user_id,)
+            ).fetchone()
+            if row:
+                return dict(row)
+            profile = {
+                "user_id": user_id,
+                "cefr_level": "B1",
+                "success_streak": 0,
+                "struggle_streak": 0,
+            }
+            db.execute(
+                "INSERT INTO learner_profile (user_id, cefr_level, success_streak, struggle_streak, updated_at) VALUES (?, ?, ?, ?, ?)",
+                (user_id, "B1", 0, 0, datetime.now().isoformat()),
+            )
+            return profile
+
+    def _pick_cefr_level(self, user_id, sequence):
+        profile = self._get_learner_profile(user_id)
+        base_index = CEFR_LEVELS.index(profile["cefr_level"])
+        if sequence and sequence % 5 == 0 and base_index > 0:
+            return CEFR_LEVELS[base_index - 1]
+        if sequence and sequence % 4 == 0 and base_index < len(CEFR_LEVELS) - 1:
+            return CEFR_LEVELS[base_index + 1]
+        return CEFR_LEVELS[base_index]
+
+    def _update_learner_level(self, user_id, question_level, outcome):
+        profile = self._get_learner_profile(user_id)
+        base_index = CEFR_LEVELS.index(profile["cefr_level"])
+        question_index = CEFR_LEVELS.index(question_level) if question_level in CEFR_LEVELS else base_index
+        success_streak = profile["success_streak"]
+        struggle_streak = profile["struggle_streak"]
+
+        if outcome == "correct":
+            success_streak += 1
+            struggle_streak = 0
+            if question_index >= base_index and success_streak >= 2 and base_index < len(CEFR_LEVELS) - 1:
+                base_index += 1
+                success_streak = 0
+        elif outcome == "incorrect":
+            success_streak = 0
+            struggle_streak += 1
+            if question_index <= base_index and struggle_streak >= 2 and base_index > 0:
+                base_index -= 1
+                struggle_streak = 0
+        else:
+            success_streak = 0
+            struggle_streak = 0
+
+        if self._uses_supabase_training(user_id):
+            _supabase("/rest/v1/learner_profiles?on_conflict=user_id", method="POST", token=self._bearer_token(), payload={
+                "user_id": user_id, "cefr_level": CEFR_LEVELS[base_index], "success_streak": success_streak,
+                "struggle_streak": struggle_streak, "updated_at": datetime.now().isoformat(),
+            }, extra_headers={"Prefer": "resolution=merge-duplicates,return=minimal"})
             return
-        self._send_json(HTTPStatus.OK, {"runs": [
-            {"id": row.get("id"), "feature": row.get("feature"), "outcome": row.get("outcome"), "timestamp": row.get("created_at")}
-            for row in rows
-        ]})
+        db_path = ROOT / "data" / "agent.db"
+        with sqlite3.connect(db_path) as db:
+            self._ensure_training_schema(db)
+            db.execute("""
+                INSERT INTO learner_profile (user_id, cefr_level, success_streak, struggle_streak, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    cefr_level = excluded.cefr_level,
+                    success_streak = excluded.success_streak,
+                    struggle_streak = excluded.struggle_streak,
+                    updated_at = excluded.updated_at
+            """, (user_id, CEFR_LEVELS[base_index], success_streak, struggle_streak, datetime.now().isoformat()))
 
-    def _handle_preferences_put(self):
-        token = self._bearer_token()
-        user_id = _auth_user(self)
-        if not user_id:
-            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인이 필요합니다."}); return
-        try:
-            data = self._read_json()
-            location = str(data.get("default_location", "")).strip()[:120]
-            kind = str(data.get("location_kind", "")).strip()[:80]
-            rows = _supabase("/rest/v1/preferences?on_conflict=user_id", method="POST", token=token,
-                payload={"user_id": user_id, "default_location": location, "location_kind": kind},
-                extra_headers={"Prefer":"resolution=merge-duplicates,return=representation"})
-        except (ValueError, UnicodeDecodeError) as error:
-            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "잘못된 설정 데이터입니다."}); return
-        except Exception as error:
-            self._send_json(HTTPStatus.BAD_GATEWAY, {"error": str(error)}); return
-        self._send_json(HTTPStatus.OK, rows[0] if rows else {"default_location":location, "location_kind":kind})
+    def _pick_training_expression(self, user_id):
+        now = datetime.now()
+        if self._uses_supabase_training(user_id):
+            history = self._remote_rows("/rest/v1/drill_history?select=id&limit=10000", user_id)
+            progress_rows = self._remote_rows("/rest/v1/expression_progress?select=*", user_id)
+            sequence = len(history)
+            states = {row["expression_id"]: row for row in progress_rows}
+        else:
+            db_path = ROOT / "data" / "agent.db"
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            with sqlite3.connect(db_path) as db:
+                self._ensure_training_schema(db)
+                db.row_factory = sqlite3.Row
+                sequence = db.execute("SELECT COUNT(*) FROM drill_history WHERE user_id = ?", (user_id,)).fetchone()[0]
+                states = {row["expression_id"]: dict(row) for row in db.execute(
+                    "SELECT * FROM expression_progress WHERE user_id = ?", (user_id,))}
 
+        due = []
+        for expression_id, state in states.items():
+            if expression_id not in CURRICULUM_BY_ID:
+                continue
+            sequence_due = state.get("next_due_sequence")
+            time_due = state.get("next_due_at")
+            if (sequence_due is not None and sequence_due <= sequence) or (time_due and time_due <= now.isoformat()):
+                priority = {"incorrect": 0, "partial": 1, "review": 2, "mastered": 3}.get(state["stage"], 4)
+                due.append((priority, state.get("last_seen_sequence") or 0, CURRICULUM_BY_ID[expression_id], state))
+        if due:
+            _, _, expression, state = min(due, key=lambda item: (item[0], item[1]))
+            reason = {
+                "incorrect": "오답 복습",
+                "partial": "부분 정답 복습",
+                "review": "간격 복습",
+                "mastered": "유지 복습",
+            }.get(state["stage"], "복습")
+            return expression, "review", reason, sequence
 
+        for day in range(1, 11):
+            candidates = [item for item in CURRICULUM if item["day"] == day and item["id"] not in states]
+            if candidates:
+                return random.choice(candidates), "new", "새 핵심 표현", sequence
 
+        expression = random.choice(CURRICULUM)
+        return expression, "review", "유지 복습", sequence
+
+    def _recent_training_context(self, user_id):
+        if self._uses_supabase_training(user_id):
+            rows = self._remote_rows(
+                "/rest/v1/drill_history?select=category,question_type&order=created_at.desc&limit=5", user_id
+            )
+            return [row.get("category") for row in rows if row.get("category")], [row.get("question_type") for row in rows if row.get("question_type")]
+        db_path = ROOT / "data" / "agent.db"
+        if not db_path.exists():
+            return [], []
+        with sqlite3.connect(db_path) as db:
+            self._ensure_training_schema(db)
+            rows = db.execute(
+                "SELECT category, question_type FROM drill_history WHERE user_id = ? ORDER BY id DESC LIMIT 5",
+                (user_id,),
+            ).fetchall()
+        return [row[0] for row in rows if row[0]], [row[1] for row in rows if row[1]]
 
     def _handle_generate_question(self):
         try:
@@ -506,9 +606,10 @@ class AgentHandler(SimpleHTTPRequestHandler):
         except Exception:
             req_data = {}
 
-        category = req_data.get("category")
-        review_exp = req_data.get("review_expression")
-        level = req_data.get("level", "medium")
+        user_id = _auth_user(self) or str(req_data.get("user_id", "guest"))[:80]
+        expression, training_mode, review_reason, sequence = self._pick_training_expression(user_id)
+        cefr_level = self._pick_cefr_level(user_id, sequence)
+        recent_categories, recent_types = self._recent_training_context(user_id)
 
         CATEGORIES = [
             "해외여행 ✈️", "게임 버그 🎮", "헬스장 🏋️", "배달 사고 🍕",
@@ -516,55 +617,133 @@ class AgentHandler(SimpleHTTPRequestHandler):
             "팀 프로젝트 🤝", "지하철 사고 🚇", "소개팅 😅", "카페 진상 ☕",
             "취업 면접 📋", "운전 초보 🚗", "반려견 산책 🐶"
         ]
-        import random
-        chosen_category = category or random.choice(CATEGORIES)
+        interview_categories = ["사내 갈등 💼", "서버 장애 💻", "팀 프로젝트 🤝", "취업 면접 📋"]
+        category_pool = interview_categories if training_mode == "new" else CATEGORIES
+        available_categories = [item for item in category_pool if item not in recent_categories] or category_pool
+        chosen_category = random.choice(available_categories)
+        question_types = ["사건 설명", "비교", "가정 질문", "선택 이유", "요청", "의견", "회고", "설득"]
+        day_types = expression["sentence_roles"] or question_types
+        available_types = [item for item in day_types if item not in recent_types] or day_types
+        question_type = random.choice(available_types)
+        context_instruction = (
+            "Make this a realistic interview-ready experience. It can be about work, study, a project, "
+            "or a personal everyday experience that a candidate could naturally discuss in an interview. "
+            "Avoid comic, fantasy, or overly dramatic situations."
+            if training_mode == "new" else
+            "Use a fresh, plausible context distinct from recent questions. Everyday life, travel, games, exercise, "
+            "work, and personal experiences are all allowed when they help transfer the expression to a new context."
+        )
 
-        if level == "easy":
-            length_guide = (
-                "LEVEL: EASY (BEGINNER). Make it very SHORT, simple, and clean (6 to 10 English words in reference_answer). "
-                "The Korean sentence must be very concise (8 to 12 words), expressing exactly 1 clear situation and 1 action. "
-                "Example: '비가 너무 많이 와서 결국 택시를 탔어요.' -> 'It rained heavily, so I ended up taking a taxi.' "
-                "Never write complicated multi-clause sentences."
-            )
-        elif level == "hard":
-            length_guide = (
-                "LEVEL: HARD. A professional multi-clause sentence (15 to 22 English words in reference_answer). "
-                "Suitable for in-depth STAR interview scenarios."
-            )
-        else: # medium (default)
-            length_guide = (
-                "LEVEL: MEDIUM (PUNCHY SPEED DRILL). Keep it concise and clean (10 to 14 English words in reference_answer). "
-                "Korean sentence must be a single clean sentence (12 to 16 words) with 1 situation + 1 result. "
-                "Example: '보스전을 하던 중에 갑자기 게임이 튕겼습니다.' -> 'While I was in a boss fight, the game suddenly crashed.' "
-                "Do NOT add unnecessary rambling clauses."
-            )
+        length_guide = CEFR_GUIDES[cefr_level]
 
         system_prompt = (
             "You are an expert English situational writing coach for Korean learners. "
             "Generate 1 punchy, vivid real-life sentence for English writing speed practice. "
-            f"Category: {chosen_category}. "
+            f"Category: {chosen_category}. Question type: {question_type}. "
             f"{length_guide} "
-            "The Korean sentence must require a practical expression (e.g. ended up ~ing, had trouble ~ing, had to, without discussing beforehand, an issue occurred, couldn't help but). "
+            f"The learner must naturally practice this expression: {expression['phrase']} ({expression['meaning']}). "
+            f"Grammar focus: {expression['grammar_focus']}. Include it naturally in the reference answer. "
+            f"{context_instruction} "
+            "Use a fresh situation and structure. Do not make a simple 'A happened but B happened' sentence. "
             "Output strictly valid JSON with these exact keys: "
             "category (string with emoji), korean (natural, concise Korean sentence), "
             "target_expression (the key English expression to practice), "
             "reference_answer (natural, concise English sentence), "
-            "hint (short 3-5 word clue)."
+            "hint (short 3-5 word clue), question_type (string)."
         )
         user_prompt = (
-            f"Category: {chosen_category}. Difficulty: {level}. "
-            f"{'Use this expression: ' + review_exp if review_exp else 'Pick 1 practical everyday expression.'} "
+            f"Category: {chosen_category}. CEFR target: {cefr_level}. Question type: {question_type}. "
+            f"Use this expression: {expression['phrase']}. "
+            f"Grammar focus: {expression['grammar_focus']}. "
+            f"{context_instruction} "
             "Output strictly valid JSON now."
         )
 
         ai_res = _call_llm_json(system_prompt, user_prompt, prefer="gemini")
         if ai_res and "korean" in ai_res and "reference_answer" in ai_res:
             ai_res.setdefault("category", chosen_category)
+            ai_res["target_expression"] = expression["phrase"]
+            ai_res["expression_id"] = expression["id"]
+            ai_res["training_day"] = expression["day"]
+            ai_res["training_theme"] = expression["theme"]
+            ai_res["grammar_focus"] = expression["grammar_focus"]
+            ai_res["cefr_level"] = cefr_level
+            ai_res["training_mode"] = training_mode
+            ai_res["review_reason"] = review_reason
+            ai_res["question_type"] = ai_res.get("question_type") or question_type
             self._send_json(HTTPStatus.OK, ai_res)
             return
 
         self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "AI 문제 생성 실패. API 키를 확인해 주세요."})
 
+
+    def _update_expression_progress(self, user_id, expression_id, outcome):
+        if not expression_id or expression_id not in CURRICULUM_BY_ID:
+            return
+        now = datetime.now()
+        if self._uses_supabase_training(user_id):
+            sequence = len(self._remote_rows("/rest/v1/drill_history?select=id&limit=10000", user_id))
+            rows = self._remote_rows("/rest/v1/expression_progress?select=*&expression_id=eq." + quote(expression_id) + "&limit=1", user_id)
+            state = rows[0] if rows else {"correct_count": 0, "partial_count": 0, "incorrect_count": 0}
+        else:
+            db_path = ROOT / "data" / "agent.db"
+            with sqlite3.connect(db_path) as db:
+                self._ensure_training_schema(db)
+                db.row_factory = sqlite3.Row
+                sequence = db.execute("SELECT COUNT(*) FROM drill_history WHERE user_id = ?", (user_id,)).fetchone()[0]
+                row = db.execute("SELECT * FROM expression_progress WHERE user_id = ? AND expression_id = ?", (user_id, expression_id)).fetchone()
+                state = dict(row) if row else {"correct_count": 0, "partial_count": 0, "incorrect_count": 0}
+        correct_count = state["correct_count"] + (1 if outcome == "correct" else 0)
+        partial_count = state["partial_count"] + (1 if outcome == "partial" else 0)
+        incorrect_count = state["incorrect_count"] + (1 if outcome == "incorrect" else 0)
+        if outcome == "incorrect":
+            stage = "incorrect"
+            next_sequence = sequence + random.randint(3, 5)
+            next_due_at = None
+        elif outcome == "partial":
+            stage = "partial"
+            next_sequence = sequence + random.randint(6, 10)
+            next_due_at = None
+        elif correct_count >= 3:
+            stage = "mastered"
+            next_sequence = None
+            next_due_at = (now + timedelta(days=3)).isoformat()
+        elif correct_count == 2:
+            stage = "review"
+            next_sequence = None
+            next_due_at = (now + timedelta(days=1)).isoformat()
+        else:
+            stage = "review"
+            next_sequence = sequence + 12
+            next_due_at = None
+        values = {
+            "user_id": user_id, "expression_id": expression_id, "stage": stage,
+            "correct_count": correct_count, "partial_count": partial_count, "incorrect_count": incorrect_count,
+            "next_due_sequence": next_sequence, "next_due_at": next_due_at,
+            "last_seen_sequence": sequence, "updated_at": now.isoformat(),
+        }
+        if self._uses_supabase_training(user_id):
+            _supabase("/rest/v1/expression_progress?on_conflict=user_id,expression_id", method="POST", token=self._bearer_token(),
+                      payload=values, extra_headers={"Prefer": "resolution=merge-duplicates,return=minimal"})
+        else:
+            with sqlite3.connect(ROOT / "data" / "agent.db") as db:
+                self._ensure_training_schema(db)
+                db.execute("""
+                INSERT INTO expression_progress (
+                    user_id, expression_id, stage, correct_count, partial_count, incorrect_count,
+                    next_due_sequence, next_due_at, last_seen_sequence, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id, expression_id) DO UPDATE SET
+                    stage = excluded.stage,
+                    correct_count = excluded.correct_count,
+                    partial_count = excluded.partial_count,
+                    incorrect_count = excluded.incorrect_count,
+                    next_due_sequence = excluded.next_due_sequence,
+                    next_due_at = excluded.next_due_at,
+                    last_seen_sequence = excluded.last_seen_sequence,
+                    updated_at = excluded.updated_at
+                """, (user_id, expression_id, stage, correct_count, partial_count, incorrect_count,
+                      next_sequence, next_due_at, sequence, now.isoformat()))
 
     def _handle_assess(self):
         try:
@@ -580,6 +759,10 @@ class AgentHandler(SimpleHTTPRequestHandler):
         user_text = str(payload.get("user_text", "")).strip()
         time_spent = int(payload.get("time_spent", 0))
         user_id = _auth_user(self) or payload.get("user_id") or "guest"
+        expression_id = payload.get("expression_id", "")
+        training_mode = payload.get("training_mode", "")
+        question_type = payload.get("question_type", "")
+        cefr_level = payload.get("cefr_level", "B1")
 
         # AI 평가 (Groq 우선 → Gemini 폴백)
         system_prompt = (
@@ -588,10 +771,10 @@ class AgentHandler(SimpleHTTPRequestHandler):
             "1. Semantic Nuance: Did the user capture the Korean nuance? (e.g. '결국' -> 'ended up ~ing', '사전에 논의 없이' -> 'without discussing beforehand'). Explain the nuance clearly if missed.\n"
             "2. Grammar Accuracy: Check tense, prepositions, articles, and agreement.\n"
             "3. Natural Phrasing: Point out awkward direct translations and provide natural native phrasing.\n\n"
-            "Write the feedback ('reason') in natural Korean. Be clear, constructive, and helpful (do NOT artificially compress it into one line).\n"
+            "Return one to four concise Korean correction points. Each point must match the corrected sentence.\n"
             "Output strictly valid JSON with keys: "
-            "is_correct (boolean), corrected_sentence (string), reason (helpful Korean explanation), "
-            "missed_nuance (string or null)."
+            "is_correct (boolean), corrected_sentence (string), feedback_points (array of 1-4 short Korean strings), "
+            "missed_nuance (string or null), result (correct, partial, or incorrect)."
         )
         user_prompt = (
             f"Korean Prompt: {korean}\n"
@@ -604,8 +787,13 @@ class AgentHandler(SimpleHTTPRequestHandler):
         if ai_eval and "corrected_sentence" in ai_eval:
             is_correct = bool(ai_eval.get("is_correct"))
             corrected_sentence = ai_eval.get("corrected_sentence", reference_answer)
-            short_reason = ai_eval.get("reason") or ai_eval.get("short_reason", "")
+            feedback_points = ai_eval.get("feedback_points")
+            if not isinstance(feedback_points, list):
+                feedback_points = [ai_eval.get("reason") or ai_eval.get("short_reason", "")]
+            feedback_points = [str(point).strip() for point in feedback_points if str(point).strip()][:4]
+            short_reason = "\n".join(feedback_points)
             missed_nuance = ai_eval.get("missed_nuance")
+            outcome = ai_eval.get("result")
             paraphrasing = []
         else:
             # API 없을 때 최소 폴백 (단어 수 기반)
@@ -614,33 +802,39 @@ class AgentHandler(SimpleHTTPRequestHandler):
             corrected_sentence = reference_answer or user_text
             short_reason = "AI 평가 서버에 연결할 수 없습니다. API 키를 확인해 주세요." if not reference_answer else \
                            f"참고 답안: {reference_answer}"
+            feedback_points = [short_reason]
             missed_nuance = None
+            outcome = "correct" if is_correct else "partial"
             paraphrasing = []
 
-        # 기록 저장 (agent.db)
+        if outcome not in ("correct", "partial", "incorrect"):
+            outcome = "correct" if is_correct else ("partial" if missed_nuance else "incorrect")
+        is_correct = outcome == "correct"
+
+        # 로컬 개발은 SQLite, 로그인한 배포 사용자의 학습 이력은 Supabase RLS로 저장한다.
         try:
-            db_path = ROOT / "data" / "agent.db"
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-            import sqlite3
-            from datetime import datetime
-            with sqlite3.connect(db_path) as db:
-                db.execute("""
-                    CREATE TABLE IF NOT EXISTS drill_history (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        created_at TEXT,
-                        user_id TEXT,
-                        category TEXT,
-                        korean TEXT,
-                        user_text TEXT,
-                        is_correct INTEGER,
-                        time_spent INTEGER,
-                        favorite INTEGER DEFAULT 0
-                    )
-                """)
-                db.execute(
-                    "INSERT INTO drill_history (created_at, user_id, category, korean, user_text, is_correct, time_spent) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (datetime.now().isoformat(timespec="seconds"), user_id, category, korean, user_text, 1 if is_correct else 0, time_spent)
-                )
+            record = {
+                "user_id": user_id, "category": category, "korean": korean, "user_text": user_text,
+                "is_correct": is_correct, "time_spent": time_spent, "expression_id": expression_id,
+                "training_mode": training_mode, "question_type": question_type,
+            }
+            if self._uses_supabase_training(user_id):
+                _supabase("/rest/v1/drill_history", method="POST", token=self._bearer_token(), payload=record,
+                          extra_headers={"Prefer": "return=minimal"})
+            else:
+                db_path = ROOT / "data" / "agent.db"
+                db_path.parent.mkdir(parents=True, exist_ok=True)
+                with sqlite3.connect(db_path) as db:
+                    self._ensure_training_schema(db)
+                    db.execute(
+                    """INSERT INTO drill_history (
+                        created_at, user_id, category, korean, user_text, is_correct, time_spent,
+                        expression_id, training_mode, question_type
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (datetime.now().isoformat(timespec="seconds"), user_id, category, korean, user_text,
+                     1 if is_correct else 0, time_spent, expression_id, training_mode, question_type))
+            self._update_expression_progress(user_id, expression_id, outcome)
+            self._update_learner_level(user_id, cefr_level, outcome)
         except Exception as db_err:
             print("Failed to save drill history to db:", db_err)
 
@@ -648,9 +842,11 @@ class AgentHandler(SimpleHTTPRequestHandler):
             "is_correct": is_correct,
             "corrected_sentence": corrected_sentence,
             "short_reason": short_reason,
+            "feedback_points": feedback_points,
             "missed_nuance": missed_nuance,
             "paraphrasing": paraphrasing,
-            "target_expression": target_expression
+            "target_expression": target_expression,
+            "outcome": outcome,
         })
 
     def _handle_drill_favorite(self):
@@ -681,21 +877,6 @@ class AgentHandler(SimpleHTTPRequestHandler):
                 self._send_json(HTTPStatus.OK, {"history": rows})
         except Exception as e:
             self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
-
-    def _record_access(self, user_id, feature, outcome):
-        token = self._bearer_token()
-        if not token:
-            return
-        try:
-            _supabase(
-                "/rest/v1/access_runs",
-                method="POST",
-                token=token,
-                payload={"user_id": user_id, "feature": feature, "outcome": outcome},
-                extra_headers={"Prefer": "return=minimal"},
-            )
-        except Exception:
-            print("Access run could not be recorded.")
 
     def _bearer_token(self):
         auth = self.headers.get("Authorization", "")

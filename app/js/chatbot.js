@@ -65,26 +65,9 @@ async function guardPractice(feature, gateId = 'practiceGate') {
   const gate = document.getElementById(gateId);
   if (!gate) return;
   const content = document.getElementById('practiceContent');
-  const message = gate.querySelector('[data-gate-message]') || document.getElementById('practiceGateMessage');
-  const login = gate.querySelector('[data-gate-login]') || document.getElementById('practiceLogin');
-  const token = authToken;
+  // 연습 자체는 공개한다. 로그인은 기기 간 학습 이력 동기화에만 사용한다.
   gate.hidden = true;
-  if (content) content.hidden = true;
-  if (!token) {
-    gate.hidden = false;
-    message.textContent = '이 연습은 로그인과 이용 권한이 있는 계정에서 사용할 수 있습니다.';
-    login.hidden = false; login.onclick = () => { setAuthMode('login'); showAuth(true); };
-    return;
-  }
-  try {
-    const res = await apiFetch('/api/practice-access', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({feature})});
-    const data = await res.json();
-    if (token !== authToken) return;
-    if (res.ok && data.allowed) { if (content) content.hidden = false; return; }
-    gate.hidden = false;
-    message.textContent = res.status === 401 ? '로그인 정보가 만료됐습니다. 다시 로그인해 주세요.' : (data.error || '이 연습을 이용할 권한이 없습니다.');
-    if (res.status === 401) { localStorage.removeItem('jwt'); authToken=null; updateAuthBtn(); login.hidden=false; login.onclick=()=>{setAuthMode('login');showAuth(true);}; }
-  } catch { gate.hidden = false; message.textContent = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'; }
+  if (content) content.hidden = false;
 }
 document.getElementById('practiceLogin')?.addEventListener('click',()=>{setAuthMode('login');showAuth(true);});
 guardPractice(document.body.dataset.protectedFeature);
@@ -159,16 +142,6 @@ async function apiFetch(url, opts = {}) {
     }
   }
   return response;
-}
-
-// ── 권한 확인 ──────────────────────────────────────────────────────
-async function hasPermission(feature) {
-  if (!authToken) return false;
-  try {
-    const res  = await apiFetch('/api/has_permission', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feature }) });
-    const data = await res.json();
-    return !!data.allowed;
-  } catch { return false; }
 }
 
 // ── chatbot ───────────────────────────────────────────────────────

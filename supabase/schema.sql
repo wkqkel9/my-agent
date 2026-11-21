@@ -1,58 +1,60 @@
--- Run in the Supabase SQL Editor. Auth identities and passwords are managed by Supabase Auth.
-create table if not exists public.permissions (
-  user_id uuid not null references auth.users(id) on delete cascade,
-  feature text not null check (feature in ('writing', 'copywriting')),
-  allowed boolean not null default false,
-  primary key (user_id, feature)
-);
+-- Run this in the Supabase SQL Editor.
+-- Auth identifies the learner; RLS keeps every learner's progress private.
+-- This service has no A/B feature gate. Never expose a service-role key.
 
-alter table public.permissions enable row level security;
-drop policy if exists "users can read their own permissions" on public.permissions;
-create policy "users can read their own permissions"
-  on public.permissions for select to authenticated
-  using ((select auth.uid()) = user_id);
-grant select on public.permissions to authenticated;
-
-create table if not exists public.preferences (
+create table if not exists public.learner_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  default_location text not null default '',
-  location_kind text not null default '',
+  cefr_level text not null default 'B1',
+  success_streak integer not null default 0,
+  struggle_streak integer not null default 0,
   updated_at timestamptz not null default now()
 );
 
-alter table public.preferences enable row level security;
-drop policy if exists "users manage their own preferences" on public.preferences;
-create policy "users manage their own preferences"
-  on public.preferences for all to authenticated
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
-grant select, insert, update on public.preferences to authenticated;
-
-create table if not exists public.access_runs (
-  id uuid primary key default gen_random_uuid(),
+create table if not exists public.drill_history (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  feature text not null check (feature in ('writing', 'copywriting')),
-  outcome text not null check (outcome in ('ok', 'denied')),
-  created_at timestamptz not null default now()
+  category text not null default '',
+  korean text not null default '',
+  user_text text not null default '',
+  is_correct boolean not null default false,
+  time_spent integer not null default 0,
+  favorite boolean not null default false,
+  expression_id text,
+  training_mode text,
+  question_type text
+);
+create index if not exists drill_history_user_created_idx on public.drill_history (user_id, created_at desc);
+
+create table if not exists public.expression_progress (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  expression_id text not null,
+  stage text not null default 'new',
+  correct_count integer not null default 0,
+  partial_count integer not null default 0,
+  incorrect_count integer not null default 0,
+  next_due_sequence integer,
+  next_due_at timestamptz,
+  last_seen_sequence integer,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, expression_id)
 );
 
-create index if not exists access_runs_user_created_idx
-  on public.access_runs (user_id, created_at desc);
+alter table public.learner_profiles enable row level security;
+alter table public.drill_history enable row level security;
+alter table public.expression_progress enable row level security;
 
-alter table public.access_runs enable row level security;
-drop policy if exists "users read their own access runs" on public.access_runs;
-create policy "users read their own access runs"
-  on public.access_runs for select to authenticated
-  using ((select auth.uid()) = user_id);
-drop policy if exists "users insert their own access runs" on public.access_runs;
-create policy "users insert their own access runs"
-  on public.access_runs for insert to authenticated
-  with check ((select auth.uid()) = user_id);
-grant select, insert on public.access_runs to authenticated;
+drop policy if exists "learner owns profile" on public.learner_profiles;
+create policy "learner owns profile" on public.learner_profiles for all to authenticated
+  using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "learner owns drill history" on public.drill_history;
+create policy "learner owns drill history" on public.drill_history for all to authenticated
+  using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "learner owns expression progress" on public.expression_progress;
+create policy "learner owns expression progress" on public.expression_progress for all to authenticated
+  using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
--- Usernames map to internal emails as <username>@<Supabase project host>.
--- Grant access in the SQL Editor after creating the test users through the app:
--- insert into public.permissions (user_id, feature, allowed)
--- select id, feature, true from auth.users cross join (values ('writing'), ('copywriting')) as f(feature)
--- where email = 'account-a@your-project-ref.supabase.co'
--- on conflict (user_id, feature) do update set allowed = excluded.allowed;
+grant select, insert, update, delete on public.learner_profiles to authenticated;
+grant select, insert, update, delete on public.drill_history to authenticated;
+grant select, insert, update, delete on public.expression_progress to authenticated;
+grant usage, select on sequence public.drill_history_id_seq to authenticated;

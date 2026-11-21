@@ -28,7 +28,7 @@
     <section id="practiceGate" class="practice-gate practice-overlay" hidden>
       <div class="practice-overlay-card">
         <h1>오늘의 무료 체험 완료! 🎉</h1>
-        <p id="practiceGateMessage">5문장 무료 체험을 완료하셨습니다. 매일 나만의 목표량(50~100개)을 채우고, 오답노트와 설정을 안전하게 저장하려면 로그인해 주세요.</p>
+        <p id="practiceGateMessage">5문장 무료 체험을 완료하셨습니다. 연습 기록과 설정을 안전하게 저장하려면 로그인해 주세요.</p>
         <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
           <button id="practiceLogin" class="button">로그인 / 회원가입</button>
           <button id="continueTrialBtn" class="outline-button">게스트로 계속 연습하기</button>
@@ -58,49 +58,15 @@
       <!-- 초미니멀 상단 상태바 (카운터, 타이머, 설정 토글) -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span id="categoryBadge" class="drill-category-badge">상황 로딩 중...</span>
-          <span style="font-size:13px; font-weight:700; color:var(--ink);"><span id="progressText">0 / 50</span> (<span id="progressPercent">0%</span>)</span>
-          <span id="streakBadge" style="font-size:12px; color:var(--orange); font-weight:700;">🔥 0연속</span>
+          <span id="progressText" style="font-size:13px; font-weight:700; color:var(--ink);">오늘 0문장</span>
         </div>
         
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="clock" id="clock" role="timer" aria-label="남은 시간" data-phase="normal" data-running="false" style="font-size:14px; padding:2px 8px;">
-            ⏱️ <span id="clockSeconds" aria-hidden="true">45</span>초
+          <span class="clock" id="clock" role="timer" aria-label="남은 시간 60초" data-phase="normal" data-running="false">
+            <span id="clockSeconds" aria-hidden="true">60</span>
           </span>
-          <details style="position:relative; display:inline-block;">
-            <summary style="cursor:pointer; font-size:12px; padding:4px 8px; border:1px solid #ddd; border-radius:4px; list-style:none; background:#fff;">⚙️ 설정</summary>
-            <div style="position:absolute; right:0; top:28px; background:#fff; border:1px solid #ccc; border-radius:8px; padding:12px; box-shadow:0 4px 16px rgba(0,0,0,0.15); z-index:100; width:280px;">
-              <div style="font-size:11px; font-weight:700; margin-bottom:4px;">난이도</div>
-              <div id="levelGroup" style="display:flex; gap:4px; margin-bottom:8px;">
-                <button type="button" class="drill-pill-btn active" data-level="easy" style="font-size:11px; padding:2px 6px;">입문</button>
-                <button type="button" class="drill-pill-btn" data-level="medium" style="font-size:11px; padding:2px 6px;">중급</button>
-                <button type="button" class="drill-pill-btn" data-level="hard" style="font-size:11px; padding:2px 6px;">도전</button>
-              </div>
-              <div style="font-size:11px; font-weight:700; margin-bottom:4px;">제한 시간</div>
-              <div id="timerGroup" style="display:flex; gap:4px; margin-bottom:8px;">
-                <button type="button" class="drill-pill-btn" data-time="20" style="font-size:11px; padding:2px 6px;">20초</button>
-                <button type="button" class="drill-pill-btn" data-time="30" style="font-size:11px; padding:2px 6px;">30초</button>
-                <button type="button" class="drill-pill-btn active" data-time="45" style="font-size:11px; padding:2px 6px;">45초</button>
-                <button type="button" class="drill-pill-btn" data-time="60" style="font-size:11px; padding:2px 6px;">60초</button>
-              </div>
-              <div style="font-size:11px; font-weight:700; margin-bottom:4px;">목표량</div>
-              <div id="goalGroup" style="display:flex; gap:4px; margin-bottom:8px;">
-                <button type="button" class="drill-pill-btn" data-goal="10" style="font-size:11px; padding:2px 6px;">10</button>
-                <button type="button" class="drill-pill-btn" data-goal="20" style="font-size:11px; padding:2px 6px;">20</button>
-                <button type="button" class="drill-pill-btn active" data-goal="50" style="font-size:11px; padding:2px 6px;">50</button>
-                <button type="button" class="drill-pill-btn" data-goal="100" style="font-size:11px; padding:2px 6px;">100</button>
-              </div>
-              <div style="display:flex; gap:4px; margin-top:8px;">
-                <button type="button" id="btnOpenWrong" class="drill-pill-btn" style="font-size:11px; padding:2px 6px; background:#fff2f0; color:#c0392b;">❌ 오답 (<span id="wrongCountBadge">0</span>)</button>
-                <button type="button" id="btnFinishSession" class="drill-pill-btn" style="font-size:11px; padding:2px 6px;">🏁 마감</button>
-              </div>
-            </div>
-          </details>
+          <button type="button" id="btnFinishSession" class="drill-pill-btn" style="font-size:11px; padding:6px 9px;">훈련 마치기</button>
         </div>
-      </div>
-
-      <div class="drill-progress-wrap" style="height:3px; margin-bottom:12px;">
-        <div id="drillProgressBar" class="drill-progress-bar" style="height:3px;"></div>
       </div>
 
       <!-- 실전 문제 카드 & 작업공간 -->
@@ -131,10 +97,10 @@
                   <div id="correctedSentence" style="font-size:17px; font-weight:700; color:var(--ink); margin-top:2px;"></div>
                 </div>
 
-                <div id="feedbackReason" style="font-size:13px; line-height:1.6; color:#444; background:#f9f8f5; padding:8px 12px; border-radius:6px; border-left:3px solid var(--orange); margin-bottom:12px;"></div>
+                <div id="feedbackReason" class="feedback-reason" aria-live="polite"></div>
 
                 <div class="drill-action-bar">
-                  <button type="button" id="btnToggleFavorite" class="btn-favorite">⭐ 즐겨찾기에 보관</button>
+                  <button type="button" id="btnToggleFavorite" class="btn-favorite btn-favorite-icon" aria-label="즐겨찾기에 보관" aria-pressed="false" title="즐겨찾기에 보관">☆</button>
                   <button type="button" id="btnNextDrill" class="button" style="padding:8px 18px; font-size:13px;">다음 문제 도전 ➔ (Enter)</button>
                 </div>
               </section>
@@ -196,10 +162,6 @@
         </div>
       </div>
 
-      <p class="writing-help">
-        💡 <b>실전 팁:</b> 20~45초 타임어택으로 머리보다 손가락이 먼저 튀어나오게 훈련하세요. 틀린 문제는 오답 노트에 담겨 시간차를 두고 다시 출제됩니다.<br>
-        <a href="../index.html">메인 소개로 돌아가기</a>
-      </p>
     </main>
 
     <footer>

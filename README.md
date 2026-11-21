@@ -26,7 +26,7 @@ docker-compose.yml  로컬/이동 실행 및 data/ 볼륨 연결
 - **Docker로 웹 + 챗봇 한 번에 실행**:
   ```bash
   cp .env.example .env
-  # .env에 Supabase URL과 publishable/anon key를 입력합니다.
+  # 로컬 연습만이면 AI 키만 입력합니다. 배포 동기화에는 Supabase 값도 입력합니다.
   docker compose up --build
   ```
   첫 빌드에서 공개 임베딩 모델을 이미지 안에 준비합니다. 실행 후 브라우저에서 [http://127.0.0.1:8000](http://127.0.0.1:8000)으로 접속합니다.
@@ -45,10 +45,10 @@ docker-compose.yml  로컬/이동 실행 및 data/ 볼륨 연결
 
 기능 페이지의 2회차 칸도 로컬 웹에서 FAQ 질문 두 개를 직접 실행해 `bot.py`가 답한 실제 화면을 캡처해 사용합니다.
 
-## 4회차 · Supabase 로그인과 연습 권한
+## Supabase 로그인과 학습 동기화
 
-회원가입·로그인은 Supabase Auth에서 처리하고, 사용자별 설정과 영작·필사 권한은 Supabase DB에서 RLS로 제한합니다. 화면에서는 아이디와 비밀번호만 받습니다. 서버는 아이디를 소문자로 정규화하고, Supabase 프로젝트 호스트를 이메일 도메인으로 붙여 내부 이메일(예: `account-a@your-project-ref.supabase.co`)을 만들어 Auth에 전달합니다. 메일을 받을 주소가 아니므로 Supabase 대시보드의 **Authentication → Providers → Email**에서 이메일 확인(Confirm email)을 꺼야 가입 직후 바로 로그인할 수 있습니다. 비밀번호는 Supabase 최소 길이 정책을 따릅니다.
+로컬에서 실행할 때 학습 기록은 Git에 포함되지 않는 `data/agent.db` SQLite 파일에 저장됩니다. `SUPABASE_URL`과 `SUPABASE_ANON_KEY`가 설정된 배포에서는 로그인한 사용자의 영작 기록·표현 복습 진도·내부 CEFR 레벨을 Supabase에 저장합니다. 로그인하지 않아도 연습은 가능하며, 로그인은 기기 간 기록 동기화와 본인 데이터 분리를 위한 선택 기능입니다.
 
-Supabase SQL Editor에서 `supabase/schema.sql`을 실행합니다. 앱에서 테스트 계정 A와 B를 가입한 뒤, SQL 파일 하단의 권한 부여 쿼리에서 아이디와 프로젝트 호스트로 만든 이메일을 지정해 실행합니다. A에는 `writing`, `copywriting` 권한을 주고 B는 권한 행을 만들지 않으면 기본 차단됩니다. 소개 페이지와 챗봇은 계속 공개이며, 영작·필사 연습 위에 권한 안내가 표시됩니다.
+Supabase SQL Editor에서 `supabase/schema.sql`을 실행합니다. RLS는 `auth.uid()`와 `user_id`가 같은 행만 읽고 쓰게 하므로, 다른 사용자의 학습 기록은 접근할 수 없습니다. AI API 키는 서버 환경 변수에만 둡니다.
 
-계정별 설정은 `/api/preferences`에서 읽고 저장하며 `user_id = auth.uid()` RLS 정책을 따릅니다. 로그아웃 시 브라우저 세션을 지우고, A→B 전환 때 각 계정은 자기 설정 행만 읽습니다.
+기존 수업용 `permissions`, `access_runs` 표는 앱에서 더 이상 사용하지 않습니다. 기능별 A/B 차단 대신, 데이터 보호와 개인 학습 이력 동기화만 적용합니다.
