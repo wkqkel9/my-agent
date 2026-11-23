@@ -261,6 +261,13 @@ class AgentHandler(SimpleHTTPRequestHandler):
             return
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "Not found"})
 
+    def do_DELETE(self):
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/drill_history":
+            self._handle_drill_history_delete()
+            return
+        self._send_json(HTTPStatus.NOT_FOUND, {"error": "Not found"})
+
     def _handle_menu(self):
         try:
             data = self._read_json()
@@ -870,6 +877,25 @@ class AgentHandler(SimpleHTTPRequestHandler):
             path = "/rest/v1/drill_history?select=*&user_id=eq." + quote(user_id) + "&order=created_at.desc&limit=50"
             rows = self._remote_rows(path, user_id)
             self._send_json(HTTPStatus.OK, {"history": rows})
+        except Exception as e:
+            self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
+
+    def _handle_drill_history_delete(self):
+        user_id = _auth_user(self)
+        if not user_id:
+            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인이 필요합니다."})
+            return
+        try:
+            token = self._bearer_token()
+            user_filter = "?user_id=eq." + quote(user_id)
+            for table in ("drill_history", "expression_progress", "learner_profiles"):
+                _supabase(
+                    "/rest/v1/" + table + user_filter,
+                    method="DELETE",
+                    token=token,
+                    extra_headers={"Prefer": "return=minimal"},
+                )
+            self._send_json(HTTPStatus.OK, {"ok": True})
         except Exception as e:
             self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)})
 

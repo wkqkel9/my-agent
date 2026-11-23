@@ -63,6 +63,27 @@ class DrillHistoryTest(unittest.TestCase):
         self.assertEqual(401, response["status"])
         self.assertEqual("로그인이 필요합니다.", response["payload"]["error"])
 
+    def test_history_reset_requires_login(self):
+        handler = self.make_handler()
+        response = {}
+        handler._send_json = lambda status, payload: response.update(status=status, payload=payload)
+        with patch("server._auth_user", return_value=None):
+            handler._handle_drill_history_delete()
+        self.assertEqual(401, response["status"])
+
+    def test_history_reset_deletes_only_authenticated_users_learning_data(self):
+        handler = self.make_handler()
+        response = {}
+        calls = []
+        handler._send_json = lambda status, payload: response.update(status=status, payload=payload)
+        with patch("server._auth_user", return_value="user-123"):
+            with patch("server._supabase", side_effect=lambda path, **kwargs: calls.append((path, kwargs))):
+                handler._handle_drill_history_delete()
+        self.assertEqual(200, response["status"])
+        self.assertEqual(3, len(calls))
+        self.assertTrue(all("user_id=eq.user-123" in path for path, _ in calls))
+        self.assertTrue(all(kwargs["method"] == "DELETE" for _, kwargs in calls))
+
 
 if __name__ == "__main__":
     unittest.main()

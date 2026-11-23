@@ -744,4 +744,5 @@
   window.addEventListener('trialgatecheck', () => {
     if (!localStorage.getItem('jwt')) init();
   });
+  window.addEventListener('learninghistoryreset', () => window.location.reload());
 })();

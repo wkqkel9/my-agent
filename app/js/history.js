@@ -7,6 +7,7 @@
   const weakExpressions = document.querySelector('#weakExpressions');
   const recentTrend = document.querySelector('#recentTrend');
   const filterButtons = [...document.querySelectorAll('[data-history-filter]')];
+  const resetHistoryButton = document.querySelector('#btnResetHistory');
 
   if (!historyList || !historyMessage || !analysisStats || !weakExpressions || !recentTrend) return;
 
@@ -78,6 +79,39 @@
     }
   }
 
+  async function resetHistory() {
+    if (!isLoggedIn() || !records.length) return;
+    const confirmed = window.confirm('학습 기록, 학습 분석, 복습 진도와 현재 난이도를 모두 초기화할까요? 이 작업은 되돌릴 수 없습니다.');
+    if (!confirmed) return;
+
+    resetHistoryButton.disabled = true;
+    historyMessage.textContent = '학습 기록을 초기화하는 중...';
+    try {
+      const response = await window.apiFetch('/api/drill_history', { method: 'DELETE' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || '학습 기록을 초기화하지 못했습니다.');
+
+      Object.keys(localStorage).forEach((key) => {
+        if (key === 'wrong_notes' || key === 'favorite_notes' || key.startsWith('training_daily_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      records = [];
+      activeFilter = 'all';
+      for (const filter of filterButtons) {
+        filter.setAttribute('aria-pressed', String(filter.dataset.historyFilter === 'all'));
+      }
+      renderHistory();
+      renderAnalysis();
+      historyMessage.textContent = '학습 기록을 초기화했습니다. 새로운 영작부터 다시 기록됩니다.';
+      window.dispatchEvent(new Event('learninghistoryreset'));
+    } catch (error) {
+      historyMessage.textContent = error.message || '학습 기록을 초기화하지 못했습니다.';
+    } finally {
+      resetHistoryButton.disabled = !records.length;
+    }
+  }
+
   function isCorrect(record) {
     return record.outcome
       ? record.outcome === 'correct'
@@ -139,6 +173,7 @@
       return true;
     });
     historyList.replaceChildren();
+    if (resetHistoryButton) resetHistoryButton.disabled = !records.length;
     if (!records.length) {
       historyMessage.textContent = '아직 저장된 학습 기록이 없어요. 영작을 연습하면 여기에 쌓입니다.';
       return;
@@ -241,6 +276,7 @@
       renderHistory();
     });
   }
+  resetHistoryButton?.addEventListener('click', resetHistory);
 
   for (const link of navLinks) {
     link.addEventListener('click', (event) => {
