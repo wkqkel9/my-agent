@@ -190,7 +190,7 @@ window.apiFetch = apiFetch;
   function showMenu(announce = true) {
     mode = 'menu';
     input.placeholder = '예: 다른 문제로 바꿔 줘';
-    if (announce) appendMessage('--- typing Agent ---\n연습을 말로 바꿔 보세요. 오답 복습, 난이도, 주제를 조절할 수 있어요.\n명령 선택은 규칙 기반입니다.');
+    if (announce) appendMessage('--- typing Agent ---\n연습을 말로 바꿔 보세요. 오답 복습, 난이도, 주제를 조절할 수 있어요.');
     renderChoices([
       { label: '1. 프로젝트 소개',    action: () => selectMenu('1', '1. 프로젝트 소개') },
       { label: '2. FAQ 대화',         action: () => selectMenu('2', '2. FAQ 대화') },
@@ -337,6 +337,16 @@ window.apiFetch = apiFetch;
     const value = input.value.trim();
     input.value = '';
     if (!value) return;
+    if (window.hasPendingReview?.() && /^(시작|취소)[.!]?$/.test(value)) {
+      busy = true;
+      appendMessage(value, true);
+      try {
+        appendMessage(await window.applyTrainingCommand({
+          review_decision: value.startsWith('시작') ? 'start' : 'cancel',
+        }));
+      } finally { busy = false; }
+      return;
+    }
     if (['menu', 'chat'].includes(mode) && !['1', '2', '3', '0', '그만'].includes(value)) {
       if (await sendTraining(value)) return;
     }

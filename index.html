@@ -104,26 +104,56 @@
 
       <section class="project-intro" aria-labelledby="serviceTitle">
         <div class="intro-heading">
-          <div class="eyebrow">The service</div>
-          <h2 id="serviceTitle">다양한 상황을 자연스러운 영어로 표현합니다</h2>
+          <div class="eyebrow">How it works</div>
+          <h2 id="serviceTitle">기능과 동작 방식</h2>
         </div>
-        <p class="project-lead">AI가 만든 한글 상황을 보고 영어 문장을 써 보는 훈련입니다. 답안을 제출하면 교정문과 수정 이유를 확인하고 다음 상황으로 이어갑니다.</p>
+        <p class="project-lead">한글 상황을 영어로 써 보고, 피드백을 받아 다음 문제에 적용합니다. 연습 문제를 만들고, 챗봇의 요청을 처리하고, 내 기록에서 복습할 표현을 찾는 데 각각 다른 기술을 사용합니다.</p>
         <div class="service-detail">
           <section>
-            <h3>바로 써보는 훈련</h3>
+            <h3>실전 영작과 AI 교정</h3>
             <ul>
-              <li><strong>실전영작</strong> — 한글 상황을 보고 영어 문장으로 직접 써봅니다.</li>
-              <li><strong>타임드릴</strong> — 60초 안에 표현을 떠올리고 바로 문장으로 만듭니다.</li>
-              <li><strong>일상표현</strong> — 경험, 원인, 협업, 실수와 회고까지 문장 패턴을 익힙니다.</li>
-              <li><strong>AI교정</strong> — 의미와 문법을 확인하고 자연스러운 표현과 수정 이유를 알려줍니다.</li>
+              <li><strong>사용 기술</strong> · JavaScript <code>setInterval()</code>, Python HTTP API, Groq·OpenAI Chat Completions API</li>
+              <li>서버가 핵심 표현과 난이도를 고르면 AI가 한글 상황과 모범 답안을 만듭니다. 입력창을 누르면 60초 타이머가 시작됩니다.</li>
+              <li>답안을 제출하면 AI가 의미, 문법, 자연스러움을 평가합니다. 정답·부분 정답·오답과 함께 교정문과 수정 이유를 볼 수 있습니다.</li>
             </ul>
           </section>
           <section>
-            <h3>계속 성장하는 방식</h3>
+            <h3>챗봇으로 연습 조절</h3>
             <ul>
-              <li><strong>오답복습</strong> — 틀린 표현은 다른 상황에서 다시 만나 익숙해진 표현은 간격을 둡니다.</li>
-              <li><strong>맞춤훈련</strong> — 틀리고 맞힌 기록을 반영해 수준과 자주 어려운 표현에 맞춘 문제를 제공합니다.</li>
-              <li><strong>수준조절</strong> — 정답과 오답에 따라 난이도를 조금씩 높거나 낮춰 안정적으로 연습합니다.</li>
+              <li><strong>사용 기술</strong> · Function Calling, JSON Schema, Python 인수 검증</li>
+              <li>“난이도 B2로 바꿔 줘”라고 하면 AI가 설정 변경 함수와 B2라는 값을 고릅니다. 서버가 허용된 함수와 값인지 확인하면 웹앱이 적용합니다.</li>
+              <li>“다른 문제로 바꿔 줘”, “오답노트로 연습해 줘”, “훈련 종료”도 같은 방식으로 처리합니다. 기능 사용법을 물으면 안내를 보여줍니다.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>약한 표현 맞춤 복습</h3>
+            <ul>
+              <li><strong>사용 기술</strong> · LangGraph <code>StateGraph</code>, <code>interrupt()</code>, <code>Command(resume=...)</code></li>
+              <li>로그인 후 “내가 약한 표현 연습시켜 줘”라고 하면 최근 30회 안의 오답과 부분 정답을 모아 어떤 표현을 복습할지, 왜 추천하는지 보여줍니다.</li>
+              <li>LangGraph는 계획을 기억한 채 답을 기다립니다. “시작”하면 같은 표현으로 새 상황 3개를 풀고 세트 결과를 봅니다. “취소”하면 풀던 문제를 이어갑니다.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>자동 난이도와 복습 간격</h3>
+            <ul>
+              <li><strong>사용 기술</strong> · Python 조건 분기, <code>datetime</code>, Supabase REST API</li>
+              <li>로그인한 사용자의 채점 결과를 반영해 CEFR 기준으로 기본 난이도를 조절합니다. 틀린 표현은 비교적 일찍 다시 나오고, 익숙해진 표현은 간격을 두고 복습합니다.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>개인 학습 기록과 분석</h3>
+            <ul>
+              <li><strong>사용 기술</strong> · Supabase Auth, PostgreSQL, 행 단위 접근 제어(RLS)</li>
+              <li>로그인하면 채점 결과와 표현별 진도가 계정에 저장됩니다. 학습 기록에서 이전 답안과 교정문을 다시 보고, 학습 분석에서 정답률과 자주 놓치는 표현을 확인합니다.</li>
+              <li>행 단위 접근 제어는 로그인한 사용자가 자신의 기록에만 접근할 수 있도록 합니다.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>FAQ와 문법 자료 찾기</h3>
+            <ul>
+              <li><strong>사용 기술</strong> · Python 키워드 매칭, BM25, <code>difflib.SequenceMatcher</code></li>
+              <li>이용 방법 질문은 등록된 키워드에 맞는 FAQ를 보여줍니다. 문법 자료 찾기는 질문과 표현이 가까운 자료 세 줄을 뽑아 관련도 점수와 함께 보여줍니다.</li>
+              <li>찾은 자료는 질문과 함께 묶어, AI에게 근거를 주고 물어볼 수 있는 프롬프트로도 제공합니다.</li>
             </ul>
           </section>
         </div>
@@ -132,62 +162,107 @@
       <section class="architecture" aria-labelledby="architectureTitle">
         <div class="architecture-heading">
           <div class="eyebrow">Architecture</div>
-          <h2 id="architectureTitle">영작 제출 한 번이 이렇게 처리됩니다</h2>
-          <p>사용자 답안은 서버와 AI를 거쳐 판정되고, 개인 학습 기록과 표현 진도로 저장됩니다.</p>
+          <h2 id="architectureTitle">브라우저에서 요청하면 어디서 처리할까?</h2>
+          <p>브라우저는 입력과 화면 표시를 맡습니다. Python 서버는 AI 호출, 계정 확인, Supabase 조회와 저장을 맡습니다.</p>
         </div>
-        <figure class="architecture-diagram" aria-label="영작 제출이 브라우저, Python 서버, AI와 학습 데이터 저장소를 거치는 흐름">
-          <svg viewBox="0 0 1180 430" role="img" aria-labelledby="diagramTitle">
-            <title id="diagramTitle">영작 제출 처리 흐름</title>
-            <text class="diagram-kicker" x="20" y="34">사용자가 답안을 제출하면</text>
-            <g class="diagram-node primary" transform="translate(20 70)">
-              <rect width="220" height="95" rx="8"/>
-              <text class="node-title" x="18" y="34">01 브라우저 화면</text>
-              <text class="node-meta" x="18" y="61">한글 상황 · 영어 답안</text>
-              <text class="node-meta" x="18" y="79">입력 후 즉시 제출</text>
+        <p class="architecture-scroll-hint">좌우로 스크롤해 전체 흐름을 볼 수 있어요.</p>
+        <figure class="architecture-diagram" tabindex="0" aria-label="앱 요청 처리 흐름도">
+          <svg viewBox="0 0 1180 490" role="img" aria-labelledby="flowTitle flowDescription">
+            <title id="flowTitle">영작 채점, 챗봇 명령, 맞춤 복습</title>
+            <desc id="flowDescription">영작 답안은 브라우저에서 Python 서버로 전달됩니다. 서버는 AI에 채점을 요청하고 피드백을 브라우저에 돌려줍니다. 로그인한 사용자의 기록은 서버가 Supabase에 저장합니다. 챗봇 명령은 모델이 고른 함수와 인수를 서버가 검증한 뒤 브라우저가 적용합니다. 맞춤 복습에서는 서버가 학습 기록을 조회하고, LangGraph가 추천을 만든 뒤 사용자 답을 받아 같은 작업을 재개합니다.</desc>
+            <defs>
+              <marker id="flowArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#766954"/></marker>
+            </defs>
+            <text class="diagram-kicker" x="20" y="26">영작 채점</text>
+            <g class="diagram-node primary" transform="translate(20 43)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">브라우저</text>
+              <text class="node-meta" x="16" y="50">영어 답안 제출</text>
+              <text class="node-meta" x="16" y="68">판정 · 교정문 · 피드백 표시</text>
             </g>
-            <path class="diagram-arrow" d="M240 118H300"/>
-            <g class="diagram-node" transform="translate(300 70)">
-              <rect width="220" height="95" rx="8"/>
-              <text class="node-title" x="18" y="34">02 Python API</text>
-              <text class="node-meta" x="18" y="61">server.py</text>
-              <text class="node-meta" x="18" y="79">문제 정보와 답안 연결</text>
+            <g class="diagram-node" transform="translate(320 43)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">Python 서버</text>
+              <text class="node-meta" x="16" y="50">POST /api/assess</text>
+              <text class="node-meta" x="16" y="68">채점 요청 · 로그인 확인</text>
             </g>
-            <path class="diagram-arrow purple" d="M520 118H580"/>
-            <g class="diagram-node ai" transform="translate(580 70)">
-              <rect width="220" height="95" rx="8"/>
-              <text class="node-title" x="18" y="34">03 Groq 평가</text>
-              <text class="node-meta" x="18" y="61">의미 · 문법 · 자연스러움</text>
-              <text class="node-meta" x="18" y="79">교정문 · 수정 이유</text>
+            <g class="diagram-node ai" transform="translate(620 43)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">Groq · OpenAI</text>
+              <text class="node-meta" x="16" y="50">의미 · 문법 · 자연스러움 평가</text>
+              <text class="node-meta" x="16" y="68">채점 결과를 서버에 반환</text>
             </g>
-            <path class="diagram-arrow" d="M800 118H860"/>
-            <g class="diagram-node database" transform="translate(860 70)">
-              <rect width="300" height="95" rx="8"/>
-              <text class="node-title" x="18" y="34">04 학습 데이터</text>
-              <text class="node-meta" x="18" y="61">Supabase 인증 계정</text>
-              <text class="node-meta" x="18" y="79">사용자별 RLS 학습 기록</text>
+            <g class="diagram-node database" transform="translate(920 43)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">Supabase</text>
+              <text class="node-meta" x="16" y="50">학습 기록 · 표현 진도 저장</text>
+              <text class="node-meta" x="16" y="68">로그인 계정별 접근 제어</text>
             </g>
-            <text class="diagram-kicker" x="20" y="220">결과가 다시 화면과 기록으로 연결됩니다</text>
-            <g class="diagram-node data-detail" transform="translate(160 250)">
-              <rect width="240" height="100" rx="8"/>
-              <text class="node-title" x="18" y="34">판정 결과</text>
-              <text class="node-meta" x="18" y="62">정답 · 부분정답 · 오답</text>
-              <text class="node-meta" x="18" y="80">핵심 표현 · 소요 시간</text>
+            <path class="diagram-arrow" d="M262 84H313" marker-end="url(#flowArrow)" marker-start="url(#flowArrow)"/>
+            <path class="diagram-arrow" d="M562 84H613" marker-end="url(#flowArrow)" marker-start="url(#flowArrow)"/>
+            <path class="diagram-arrow storage-arrow" d="M437 125V149H1037V132" marker-end="url(#flowArrow)"/>
+            <text class="edge-label" x="735" y="141">로그인한 경우 서버가 저장</text>
+            <text class="diagram-kicker" x="20" y="199">챗봇 명령</text>
+            <g class="diagram-node primary" transform="translate(20 216)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">브라우저</text>
+              <text class="node-meta" x="16" y="50">“다음 문제로 바꿔 줘”</text>
+              <text class="node-meta" x="16" y="68">사용자 문장을 서버로 전송</text>
             </g>
-            <g class="diagram-node data-detail" transform="translate(470 250)">
-              <rect width="240" height="100" rx="8"/>
-              <text class="node-title" x="18" y="34">학습 기록</text>
-              <text class="node-meta" x="18" y="62">상황 · 내 답 · 교정문</text>
-              <text class="node-meta" x="18" y="80">AI 피드백 · 답변 시간</text>
+            <g class="diagram-node" transform="translate(320 216)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">Python 서버</text>
+              <text class="node-meta" x="16" y="50">POST /api/training_command</text>
+              <text class="node-meta" x="16" y="68">사용자 문장과 함수 목록 전달</text>
             </g>
-            <g class="diagram-node data-detail" transform="translate(780 250)">
-              <rect width="240" height="100" rx="8"/>
-              <text class="node-title" x="18" y="34">다음 학습에 반영</text>
-              <text class="node-meta" x="18" y="62">취약 표현 · 복습 시점</text>
-              <text class="node-meta" x="18" y="80">난이도와 표현 진도</text>
+            <g class="diagram-node ai" transform="translate(620 216)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">Function Calling</text>
+              <text class="node-meta" x="16" y="50">모델이 함수와 인수를 반환</text>
+              <text class="node-meta" x="16" y="68">Python 서버가 반환값 검증</text>
             </g>
-            <path class="diagram-line" d="M690 165V210H280V250"/>
-            <path class="diagram-line" d="M690 165V250"/>
-            <path class="diagram-line" d="M690 165V210H900V250"/>
+            <g class="diagram-node primary" transform="translate(920 216)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">연습 화면</text>
+              <text class="node-meta" x="16" y="50">검증된 명령을 적용</text>
+              <text class="node-meta" x="16" y="68">문의에는 사용법 표시</text>
+            </g>
+            <path class="diagram-arrow" d="M262 257h51" marker-end="url(#flowArrow)"/>
+            <path class="diagram-arrow" d="M562 257h51" marker-end="url(#flowArrow)"/>
+            <path class="diagram-arrow" d="M862 257h51" marker-end="url(#flowArrow)"/>
+            <text class="diagram-kicker" x="20" y="358">맞춤 복습</text>
+            <g class="diagram-node database" transform="translate(20 375)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">Python 서버 · Supabase</text>
+              <text class="node-meta" x="16" y="50">POST /api/focused_review</text>
+              <text class="node-meta" x="16" y="68">최근 채점 결과 조회</text>
+            </g>
+            <g class="diagram-node" transform="translate(320 375)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">LangGraph</text>
+              <text class="node-meta" x="16" y="50">복습할 표현을 골라 추천</text>
+              <text class="node-meta" x="16" y="68">interrupt()로 답변 대기</text>
+            </g>
+            <g class="diagram-node primary" transform="translate(620 375)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">챗봇 응답 → LangGraph</text>
+              <text class="node-meta" x="16" y="50">“시작” 또는 “취소”</text>
+              <text class="node-meta" x="16" y="68">Command(resume=…)으로 재개</text>
+            </g>
+            <g class="diagram-node ai" transform="translate(920 375)">
+              <rect width="235" height="82" rx="8"/>
+              <text class="node-title" x="16" y="28">문제 생성 API</text>
+              <text class="node-meta" x="16" y="50">POST /api/generate_question</text>
+              <text class="node-meta" x="16" y="68">시작하면 같은 표현으로 새 문제 생성</text>
+            </g>
+            <path class="diagram-arrow" d="M262 416h51" marker-end="url(#flowArrow)"/>
+            <path class="diagram-arrow" d="M562 416h51" marker-end="url(#flowArrow)"/>
+            <path class="diagram-arrow" d="M862 416h51" marker-end="url(#flowArrow)"/>
+            <text class="edge-label" x="874" y="405">시작</text>
+            <path class="diagram-branch" d="M437 457V475H422" marker-end="url(#flowArrow)"/>
+            <text class="edge-label" x="231" y="480">복습할 표현이 없으면 안내하고 종료</text>
+            <path class="diagram-branch" d="M737 457V475H754" marker-end="url(#flowArrow)"/>
+            <text class="edge-label" x="762" y="480">취소하면 현재 연습을 이어감</text>
           </svg>
         </figure>
       </section>

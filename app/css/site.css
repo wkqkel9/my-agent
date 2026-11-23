@@ -52,23 +52,21 @@
 .architecture{padding:82px 0}
 .architecture-heading{max-width:720px}
 .architecture-heading p{margin:16px 0 0;color:var(--muted);font-size:14px;line-height:1.8}
-.architecture-diagram{margin:38px 0 0;padding:18px 26px 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(180deg,#f7f5f1 0,#fbfaf8 100%)}
-.architecture-diagram svg{display:block;width:100%;height:auto;overflow:visible}
-.diagram-kicker{fill:#8a8278;font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px}
-.diagram-node rect{fill:#fff;stroke:#d9d5cd;stroke-width:1}
+.architecture-scroll-hint{display:none}
+.architecture-diagram{margin:38px 0 0;padding:18px 26px;border-block:1px solid var(--line);background:linear-gradient(180deg,#f7f5f1,#fbfaf8);overflow-x:auto}
+.architecture-diagram:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+.architecture-diagram svg{display:block;width:100%;min-width:860px;height:auto}
+.diagram-kicker{fill:var(--ink);font-size:15px;font-weight:700}
+.diagram-node rect{fill:#fff;stroke:#d9d5cd}
 .diagram-node.primary rect{fill:#f5f1ff;stroke:#9a8bd2}
 .diagram-node.ai rect{fill:#fff9f6;stroke:#dba18f}
 .diagram-node.database rect{fill:#f2f7ef;stroke:#bdcbb5}
-.diagram-node.data-detail rect{fill:#fafafa;stroke:#d9d5cd}
-.node-title{fill:var(--ink);font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:14px;font-weight:700}
-.node-meta{fill:#77766f;font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:11px}
-.node-divider{stroke:#e5e1da;stroke-width:1}
-.diagram-arrow{fill:none;stroke:#ea7b5c;stroke-width:2}
-.diagram-arrow.purple{stroke:#6556ad}
-.diagram-line{fill:none;stroke:#d0cbc3;stroke-width:1.5}
-.diagram-line.dashed{stroke-dasharray:5 5}
-.diagram-line.db-line{stroke:#8a8278;stroke-dasharray:4 5}
-.edge-label{fill:#77766f;font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:10px;font-weight:600}
+.node-title{fill:var(--ink);font-size:16px;font-weight:700}
+.node-meta{fill:#5c5c53;font-size:13px}
+.diagram-arrow{fill:none;stroke:#766954;stroke-width:1.8}
+.storage-arrow{stroke-dasharray:5 4}
+.diagram-branch{fill:none;stroke:#766954;stroke-width:1.5;stroke-dasharray:4 3}
+.edge-label{fill:#5c5c53;font-size:12px}
 .summary-modal-head{display:flex;justify-content:space-between;align-items:center}
 .summary-modal-head h2{margin:0;font-size:24px}
 .summary-modal-head .auth-close{position:static}
@@ -87,8 +85,8 @@
   .writing-workspace .demo{padding:22px 18px}.practice-status{font-size:11px}
   .project-intro{padding:58px 0}.intro-heading h2,.architecture-heading h2{font-size:29px}
   .project-lead{font-size:13px}.architecture{padding:58px 0}
-  .architecture-diagram{margin-left:-22px;margin-right:-22px;padding:10px 12px;overflow-x:auto}
-  .architecture-diagram svg{min-width:760px}
+  .architecture-scroll-hint{display:block;margin:20px 0 0;color:var(--muted);font-size:12px}
+  .architecture-diagram{margin:8px -22px 0;padding:10px 12px}
   .summary-modal-card{padding:22px}.summary-stats-grid{gap:7px}
 }
 /* Stopwatch countdown: calm, warning, then urgent. */

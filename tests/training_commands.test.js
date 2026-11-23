@@ -9,14 +9,28 @@ function element() {
 }
 const document = {querySelector(key) {if (!nodes.has(key)) nodes.set(key, element()); return nodes.get(key);}, createElement: element};
 const localStorage = {getItem: k => storage.get(k) || null, setItem: (k, v) => storage.set(k, v)};
-const window = {addEventListener(k, f) {events[k] = f;}, apiFetch: async () => ({ok: true, json: async () => ({history: [
+const reviewRequests = [];
+const plan = {expression_id: 'sample-id', expression: 'even though', attempts: 4, misses: 3, size: 3};
+const window = {dispatchEvent() {}, addEventListener(k, f) {events[k] = f;}, apiFetch: async (url, opts) => {
+  if (url === '/api/focused_review') {
+    const body = JSON.parse(opts.body);
+    reviewRequests.push(body);
+    return {ok: true, json: async () => body.thread_id
+      ? {approved: body.approved, plan: body.approved ? plan : null}
+      : {plan: {...plan, thread_id: 'sample-thread'}}};
+  }
+  return {ok: true, json: async () => ({history: [
   {korean: '이미 맞힌 문제', outcome: 'correct', corrected_sentence: 'Correct.'},
   {korean: '이미 맞힌 문제', outcome: 'incorrect', corrected_sentence: 'Correct.'},
   {korean: '나는 갔다.', outcome: 'incorrect', corrected_sentence: 'I went.', cefr_level: 'B2'},
   {korean: '나는 집에 왔다.', outcome: 'partial', corrected_sentence: 'I came home.'},
-]})})};
-const context = vm.createContext({window, document, localStorage, location: {hash: ''}, console, Date,
+]})};
+}};
+const context = vm.createContext({window, document, localStorage, location: {hash: ''}, console, Date, Event: function() {},
   clearInterval() {}, setInterval() {}, fetch: async (url, opts) => {
+    if (url === '/api/assess') return {ok: true, json: async () => ({
+      outcome: 'correct', corrected_sentence: 'Correct.', feedback_points: ['좋아요.'],
+    })};
     requests.push(JSON.parse(opts.body));
     return {ok: true, json: async () => ({korean: `새 문제 ${requests.length}`, reference_answer: 'New question.', cefr_level: 'B1'})};
   }});
@@ -53,5 +67,28 @@ vm.runInContext(fs.readFileSync('app/js/writing.js', 'utf8'), context);
   assert.equal(nodes.get('#summaryModal').hidden, false);
   assert.equal(nodes.get('#sumTotalSolved').textContent, '0개');
   assert.equal(requests.length, beforeFinish);
+  assert.match(await window.applyTrainingCommand({recommend_review: true}), /4번 중 3번/);
+  assert.equal(requests.length, beforeFinish, 'preview must not generate a question');
+  assert.match(await window.applyTrainingCommand({review_decision: 'cancel'}), /취소/);
+  assert.equal(requests.length, beforeFinish);
+  await window.applyTrainingCommand({recommend_review: true});
+  assert.match(await window.applyTrainingCommand({review_decision: 'start'}), /집중 복습을 시작/);
+  assert.deepEqual(reviewRequests.at(-1), {thread_id: 'sample-thread', approved: true});
+  const flush = () => new Promise(resolve => setImmediate(resolve));
+  for (let i = 0; i < 3; i++) {
+    assert.equal(requests.at(-1).focus_expression_id, plan.expression_id);
+    assert.equal(requests.at(-1).focus_questions.length, i);
+    nodes.get('#expandInput').value = 'A practice answer.';
+    nodes.get('#expandForm').listeners.submit({preventDefault() {}});
+    await flush();
+    if (i < 2) {
+      nodes.get('#btnNextDrill').listeners.click();
+      await flush();
+    }
+  }
+  assert.match(nodes.get('#expandStatus').textContent, /3문제 중 3문제 정답/);
+  nodes.get('#btnNextDrill').listeners.click();
+  await flush();
+  assert.equal(requests.at(-1).focus_expression_id, undefined);
   console.log('Practice commands: settings, empty notes, account review, latest result, next review, return to normal passed');
 })().catch(error => {console.error(error); process.exitCode = 1;});

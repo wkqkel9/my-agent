@@ -22,10 +22,61 @@
   let settings = { mode: 'normal', level: 'auto', topic: 'auto' };
   let reviewQueue = [];
   let reviewIndex = 0;
+  let pendingReview = null;
+  let focusReview = null;
   const levels = ['A2', 'B1', 'B1+', 'B2', 'B2+'];
+
+  window.hasPendingReview = () => Boolean(pendingReview);
+
+  async function handleFocusedReview(action) {
+    if (!localStorage.getItem('jwt')) {
+      return '로그인하면 내 학습 기록으로 맞춤 복습을 추천받을 수 있어요.';
+    }
+    const decision = action.review_decision;
+    if (decision && !pendingReview) return '먼저 맞춤 복습을 요청해 주세요.';
+    practiceBusy = true;
+    let data;
+    try {
+      const response = await window.apiFetch('/api/focused_review', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(decision ? {
+          thread_id: pendingReview.thread_id, approved: decision === 'start',
+        } : {}),
+      });
+      data = await response.json();
+      if (response.status === 410) pendingReview = null;
+      if (!response.ok) return data.error || '맞춤 복습을 준비하지 못했어요.';
+    } catch {
+      return '맞춤 복습 서버에 연결하지 못했어요. 잠시 후 다시 요청해 주세요.';
+    } finally { practiceBusy = false; }
+
+    if (!decision) {
+      pendingReview = data.plan;
+      if (!pendingReview) return '추천할 오답 표현이 아직 없어요. 일반 영작을 몇 문제 더 풀어 보세요.';
+      const {expression, attempts, misses, size} = pendingReview;
+      return `‘${expression}’ 문제에서 최근 ${attempts}번 중 ${misses}번 정답을 놓쳤어요. 같은 표현으로 새 문제 ${size}개를 풀어볼까요? “시작” 또는 “취소”라고 답해 주세요.`;
+    }
+
+    const proposal = pendingReview;
+    pendingReview = null;
+    if (!data.approved) return '맞춤 복습을 취소했어요.';
+    settings.mode = 'normal';
+    focusReview = { ...data.plan, expression: proposal.expression, solved: 0, correct: 0, questions: [] };
+    renderSettings();
+    if (location.hash.startsWith('#learning-')) location.hash = '';
+    const success = await fetchAndRenderQuestion({replaceCurrent: true});
+    if (!success) return '복습 계획을 시작했지만 새 문제를 받지 못했어요. “다음 문제”로 다시 시도해 주세요.';
+    practiceContent?.scrollIntoView({behavior: 'smooth', block: 'center'});
+    return `‘${focusReview.expression}’ 집중 복습을 시작했어요. 새 문제 ${focusReview.size}개를 풀어 보세요.`;
+  }
 
   function renderSettings() {
     const label = document.querySelector('#trainingSettings');
+    if (label && focusReview) {
+      label.textContent = `맞춤 복습 · ${focusReview.expression} · ${focusReview.solved}/${focusReview.size} 완료`;
+      return;
+    }
     if (label) label.textContent = settings.mode === 'wrong' ? '오답 복습 · 저장된 원래 문제 · 다음 문제도 오답에서 나와요' : `일반 연습 · 난이도 ${settings.level === 'auto' ? '자동' : settings.level} · 주제 ${settings.topic === 'auto' ? '자동' : settings.topic}`;
   }
 
@@ -39,7 +90,10 @@
 
   window.applyTrainingCommand = async (action) => {
     if (practiceBusy) return '문제 생성이나 채점이 끝난 뒤 다시 요청해 주세요.';
+    if (action.recommend_review || action.review_decision) return handleFocusedReview(action);
     if (action.finish_session) {
+      focusReview = null;
+      renderSettings();
       if (location.hash.startsWith('#learning-')) location.hash = '';
       openSummaryModal();
       return '오늘 훈련 결과를 열었어요.';
@@ -100,6 +154,7 @@
         return error.message || '오답 기록을 불러오지 못했어요. 현재 문제는 유지할게요.';
       } finally { practiceBusy = false; }
     }
+    if (action.mode) focusReview = null;
     settings = next;
     renderSettings();
     if (location.hash.startsWith('#learning-')) location.hash = '';
@@ -164,7 +219,8 @@
     if (practiceBusy) return false;
     if (settings.mode === 'wrong' && reviewQueue.length) return showReviewQuestion();
     practiceBusy = true;
-    const previousQuestion = replaceCurrent ? currentDrill?.korean : null;
+    const review = focusReview;
+    const previousQuestion = (replaceCurrent || review) ? currentDrill?.korean : null;
     if (!previousQuestion) {
       currentDrill = null;
       koreanPrompt.textContent = '⏳ AI가 새 문제를 생성하는 중...';
@@ -186,6 +242,7 @@
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           ...(previousQuestion ? { previous_question: previousQuestion } : {}),
+          ...(review ? { focus_expression_id: review.expression_id, focus_questions: review.questions } : {}),
           cefr_level: settings.level,
           topic: settings.topic
         })
@@ -205,6 +262,11 @@
       }
 
       currentDrill = payload;
+      if (review) {
+        currentDrill.focusReview = review;
+        // Only the last three prompts are needed when asking for a different situation.
+        review.questions = [...review.questions, payload.korean].slice(-3);
+      }
       applyDrillToUI(currentDrill);
       updateProgress();
       return true;
@@ -484,6 +546,16 @@
 
     updateProgress();
     expandStatus.textContent = 'Enter를 누르면 다음 문제로 즉시 넘어갑니다 ➔';
+    if (focusReview && currentDrill.focusReview === focusReview) {
+      focusReview.solved++;
+      if (outcome === 'correct') focusReview.correct++;
+      if (focusReview.solved === focusReview.size) {
+        const { expression, solved, correct } = focusReview;
+        focusReview = null;
+        expandStatus.textContent = `‘${expression}’ 복습 완료 · ${solved}문제 중 ${correct}문제 정답. Enter로 일반 연습을 이어가세요.`;
+      }
+      renderSettings();
+    }
 
   }
 
@@ -659,6 +731,13 @@
     if (localStorage.getItem('jwt')) {
       window.location.reload();
     } else {
+      settings = { mode: 'normal', level: 'auto', topic: 'auto' };
+      pendingReview = null;
+      focusReview = null;
+      reviewQueue = [];
+      reviewIndex = 0;
+      currentDrill = null;
+      renderSettings();
       init();
     }
   });

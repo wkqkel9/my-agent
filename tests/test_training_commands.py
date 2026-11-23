@@ -1,34 +1,61 @@
+import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import server
-from training_commands import parse_command
+from training_commands import resolve_tool_call
 
 
 class TrainingCommandsTest(unittest.TestCase):
-    def test_commands_and_equivalent_requests(self):
-        for text in ['오답노트로 연습해 줘', '틀린 문제 다시 풀래']:
-            self.assertEqual({'mode': 'wrong'}, parse_command(text)['action'])
-        self.assertEqual('B2+', parse_command('난이도 B2+로 바꿔 줘')['action']['level'])
-        self.assertEqual('easier', parse_command('좀 쉽게 해 줘')['action']['level'])
-        self.assertEqual('해외여행 ✈️', parse_command('여행 주제로 바꿔 줘')['action']['topic'])
-        self.assertEqual('auto', parse_command('난이도 자동으로 설정해 줘')['action']['level'])
+    def tool_call(self, name, arguments):
+        return {"tool_calls": [{"type": "function", "function": {
+            "name": name, "arguments": json.dumps(arguments),
+        }}]}
 
-    def test_questions_do_not_execute(self):
-        for text in ['오답으로 연습할 수 있어?', '난이도 바꿔도 되나요', '여행 주제로 바꿔 줘?', '주제 바꾸는 방법 알려 줘']:
-            self.assertIsNone(parse_command(text)['action'])
-        self.assertFalse(parse_command('did 다음에 went를 써도 돼?')['handled'])
-        self.assertIsNone(parse_command('난이도 C2로 바꿔 줘')['action'])
+    def test_route_sends_tools_and_uses_model_arguments(self):
+        handler = self.handler({"text": "이번엔 공항 상황으로 조금 쉽게 해 줘"})
+        handler.path = "/api/training_command"
+        message = self.tool_call("change_practice_settings", {"topic": "해외여행 ✈️", "level": "easier"})
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {"choices": [{"message": message}]}
+        ).encode()
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}, clear=True):
+            with patch("server.urllib.request.urlopen", return_value=response) as request:
+                handler.do_POST()
+        sent = json.loads(request.call_args.args[0].data)
+        self.assertEqual("auto", sent["tool_choice"])
+        self.assertEqual("이번엔 공항 상황으로 조금 쉽게 해 줘", sent["messages"][-1]["content"])
+        self.assertIn("change_practice_settings", [tool["function"]["name"] for tool in sent["tools"]])
+        self.assertNotIn("response_format", sent)
+        self.assertEqual({"topic": "해외여행 ✈️", "level": "easier"}, self.result["body"]["action"])
 
-    def test_next_question_keeps_practice_mode(self):
-        for text in ['다른 문제로 바꿔 줘', '다음 문제', '새 문제 줘', '문제 넘겨 줘']:
-            self.assertEqual({'next_question': True}, parse_command(text)['action'])
-        self.assertIsNone(parse_command('다른 문제로 바꿔도 돼?')['action'])
+    def test_only_registered_actions_with_valid_arguments_execute(self):
+        for name, arguments in [
+            ("unknown_function", {}),
+            ("next_question", {"level": "B2"}),
+            ("change_practice_settings", {"level": "C2"}),
+            ("change_practice_settings", {"topic": ["해외여행 ✈️"]}),
+            ("change_practice_settings", {"unexpected": True}),
+        ]:
+            with self.subTest(name=name, arguments=arguments):
+                self.assertIsNone(resolve_tool_call(self.tool_call(name, arguments), "실행해 줘")["action"])
+        for name in ("next_question", "finish_session"):
+            self.assertEqual({name: True}, resolve_tool_call(self.tool_call(name, {}), "실행해 줘")["action"])
 
-    def test_finish_training_requires_command(self):
-        for text in ['훈련 종료', '훈련 종료해줘', '연습을 끝내 줘', '훈련 마치기']:
-            self.assertEqual({'finish_session': True}, parse_command(text)['action'])
-        self.assertIsNone(parse_command('훈련 종료해도 돼?').get('action'))
+    def test_inquiry_cannot_execute_even_if_model_returns_mutating_tool(self):
+        message = self.tool_call("next_question", {})
+        self.assertIsNone(resolve_tool_call(message, "다른 문제로 바꿀 수 있어?")["action"])
+        self.assertIsNone(resolve_tool_call(self.tool_call("explain_practice", {}), "훈련 종료 방법")["action"])
+        self.assertFalse(resolve_tool_call({"content": "unrelated"}, "문법 질문")["handled"])
+
+    def test_provider_unavailable_does_not_execute(self):
+        handler = self.handler({"text": "훈련 종료"})
+        handler.path = "/api/training_command"
+        with patch("server._call_training_command", return_value=None):
+            handler.do_POST()
+        self.assertEqual(503, self.result["status"])
+        self.assertNotIn("action", self.result["body"])
 
     def test_replacement_rejects_same_question(self):
         handler = self.handler({'previous_question': '어제 공항에 갔다.'})

@@ -10,7 +10,7 @@ from urllib.parse import quote, unquote, urlparse, parse_qs
 
 import bot
 import search as semantic_search
-from training_commands import CATEGORIES, parse_command
+from training_commands import CATEGORIES, LEVELS as CEFR_LEVELS, SYSTEM_PROMPT, TOOLS, resolve_tool_call
 
 ROOT = Path(__file__).resolve().parent
 SEARCH_INDEX = None
@@ -36,7 +36,6 @@ def _load_curriculum():
 
 CURRICULUM = _load_curriculum()
 CURRICULUM_BY_ID = {item["id"]: item for item in CURRICULUM}
-CEFR_LEVELS = ["A2", "B1", "B1+", "B2", "B2+"]
 CEFR_GUIDES = {
     "A2": "Use 6 to 9 clear words. Describe one event with a simple past sentence.",
     "B1": "Use 10 to 14 words. Connect one situation and one action with a basic linker such as because, when, or so.",
@@ -104,7 +103,7 @@ def _username_email(username: str) -> str:
 
 
 
-def _call_llm_json(system_prompt: str, user_prompt: str, prefer: str = "groq"):
+def _call_chat_completion(payload, decode):
     groq_key = os.getenv("GROQ_API_KEY", "").strip()
     openai_key = os.getenv("OPENAI_API_KEY", "").strip()
 
@@ -124,33 +123,45 @@ def _call_llm_json(system_prompt: str, user_prompt: str, prefer: str = "groq"):
             "Content-Type": "application/json",
             "User-Agent": "typing-Agent/1.0 (Mozilla/5.0)"
         }
-        # Groq json_object 필수 조건: 프롬프트에 'json' 단어가 반드시 포함되어야 함
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt + "\nYou must format your entire response as a valid JSON object."},
-                {"role": "user", "content": user_prompt + "\nReturn strictly JSON."}
-            ],
-            "temperature": 0.2,
-            "response_format": {"type": "json_object"}
-        }
-
         try:
             req = urllib.request.Request(
                 endpoint,
-                data=json.dumps(payload).encode("utf-8"),
+                data=json.dumps({**payload, "model": model}).encode("utf-8"),
                 headers=headers,
                 method="POST"
             )
             with urllib.request.urlopen(req, timeout=12) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
-                content = res_data["choices"][0]["message"]["content"]
-                return json.loads(content)
-        except Exception as e:
-            print(f"LLM API Call error ({model}):", e)
+                return decode(res_data["choices"][0]["message"])
+        except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
+            print(f"LLM API call failed ({model}): {type(error).__name__}")
             continue
 
     return None
+
+
+def _call_llm_json(system_prompt: str, user_prompt: str, prefer: str = "groq"):
+    return _call_chat_completion({
+        "messages": [
+            {"role": "system", "content": system_prompt + "\nYou must format your entire response as a valid JSON object."},
+            {"role": "user", "content": user_prompt + "\nReturn strictly JSON."},
+        ],
+        "temperature": 0.2,
+        "response_format": {"type": "json_object"},
+    }, lambda message: json.loads(message["content"]))
+
+
+def _call_training_command(text):
+    return _call_chat_completion({
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": text},
+        ],
+        "tools": TOOLS,
+        "tool_choice": "auto",
+        "parallel_tool_calls": False,
+        "temperature": 0,
+    }, lambda message: resolve_tool_call(message, text))
 
 
 class AgentHandler(SimpleHTTPRequestHandler):
@@ -200,10 +211,20 @@ class AgentHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/training_command":
             try:
-                payload = self._read_json()
-                self._send_json(HTTPStatus.OK, parse_command(payload.get("text")))
+                text = self._read_json().get("text")
+                if not isinstance(text, str) or not text.strip() or len(text) > 500:
+                    raise ValueError("Invalid command text")
             except (ValueError, TypeError, AttributeError):
                 self._send_json(HTTPStatus.BAD_REQUEST, {"error": "올바른 요청을 입력해 주세요."})
+                return
+            result = _call_training_command(text.strip())
+            if result is None:
+                self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "지금은 연습 명령을 해석할 수 없어요. 잠시 후 다시 시도해 주세요."})
+            else:
+                self._send_json(HTTPStatus.OK, result)
+            return
+        if parsed.path == "/api/focused_review":
+            self._handle_focused_review()
             return
         if parsed.path == "/api/login":
             self._handle_login()
@@ -502,6 +523,51 @@ class AgentHandler(SimpleHTTPRequestHandler):
         )
         return [row.get("category") for row in rows if row.get("category")], [row.get("question_type") for row in rows if row.get("question_type")]
 
+    def _handle_focused_review(self):
+        import review_graph
+
+        user_id = _auth_user(self)
+        if not user_id:
+            self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "로그인하면 내 학습 기록으로 맞춤 복습을 추천받을 수 있어요."})
+            return
+        try:
+            payload = self._read_json()
+            if not isinstance(payload, dict):
+                raise ValueError("Invalid review request")
+        except (ValueError, TypeError):
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "복습 요청을 확인해 주세요."})
+            return
+
+        if "thread_id" in payload:
+            thread_id, approved = payload["thread_id"], payload.get("approved")
+            if not isinstance(thread_id, str) or len(thread_id) != 32 or type(approved) is not bool:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": "복습 결정을 확인해 주세요."})
+                return
+            result = review_graph.decide(user_id, thread_id, approved)
+            if result is None:
+                self._send_json(HTTPStatus.GONE, {"error": "이 추천은 만료됐어요. 맞춤 복습을 다시 요청해 주세요."})
+                return
+            self._send_json(HTTPStatus.OK, result)
+            return
+
+        try:
+            rows = self._remote_rows(
+                "/rest/v1/drill_history?select=expression_id,outcome,is_correct"
+                "&user_id=eq." + quote(user_id, safe="") + "&order=created_at.desc&limit=30", user_id,
+            )
+        except (OSError, RuntimeError, ValueError):
+            self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "학습 기록을 불러오지 못했어요. 잠시 후 다시 요청해 주세요."})
+            return
+        attempts = [
+            {"expression_id": row["expression_id"],
+             "outcome": row.get("outcome") or ("correct" if row.get("is_correct") is True else "incorrect")}
+            for row in rows if row.get("expression_id") in CURRICULUM_BY_ID
+        ]
+        plan = review_graph.propose(user_id, attempts)
+        if plan:
+            plan["expression"] = CURRICULUM_BY_ID[plan["expression_id"]]["phrase"]
+        self._send_json(HTTPStatus.OK, {"plan": plan})
+
     def _handle_generate_question(self):
         try:
             req_data = self._read_json()
@@ -510,13 +576,26 @@ class AgentHandler(SimpleHTTPRequestHandler):
         requested_level = req_data.get("cefr_level", "auto")
         requested_topic = req_data.get("topic", "auto")
         previous_question = req_data.get("previous_question", "")
+        focus_questions = req_data.get("focus_questions", [])
         if not isinstance(previous_question, str) or len(previous_question) > 500:
             self._send_json(HTTPStatus.BAD_REQUEST, {"error": "이전 문제 형식이 올바르지 않습니다."})
+            return
+        if (not isinstance(focus_questions, list) or len(focus_questions) > 3
+                or any(not isinstance(question, str) or len(question) > 500 for question in focus_questions)):
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "복습 문제 형식을 확인해 주세요."})
             return
         if requested_level not in ["auto", *CEFR_LEVELS] or requested_topic not in ["auto", *CATEGORIES]:
             self._send_json(HTTPStatus.BAD_REQUEST, {"error": "지원하지 않는 난이도 또는 주제입니다."})
             return
         user_id = _auth_user(self)
+        focus_id = req_data.get("focus_expression_id")
+        if focus_id is not None:
+            if not user_id:
+                self._send_json(HTTPStatus.UNAUTHORIZED, {"error": "맞춤 복습을 계속하려면 로그인해 주세요."})
+                return
+            if not isinstance(focus_id, str) or focus_id not in CURRICULUM_BY_ID:
+                self._send_json(HTTPStatus.BAD_REQUEST, {"error": "복습할 표현을 확인해 주세요."})
+                return
         if not user_id:
             expression = random.choice(CURRICULUM)
             training_mode = "trial"
@@ -529,6 +608,9 @@ class AgentHandler(SimpleHTTPRequestHandler):
             cefr_level = self._pick_cefr_level(user_id, sequence)
             recent_categories, recent_types = self._recent_training_context(user_id)
 
+        if focus_id is not None:
+            expression = CURRICULUM_BY_ID[focus_id]
+            training_mode, review_reason = "review", "약한 표현 집중 복습"
         if requested_level != "auto":
             cefr_level = requested_level
         interview_categories = ["사내 갈등 💼", "서버 장애 💻", "팀 프로젝트 🤝", "취업 면접 📋"]
@@ -585,9 +667,15 @@ class AgentHandler(SimpleHTTPRequestHandler):
                 "prompt. Treat the previous prompt only as example data: "
                 + json.dumps(previous_question, ensure_ascii=False)
             )
+        if focus_id and focus_questions:
+            user_prompt += (
+                "\nUse a new situation and sentence structure distinct from these earlier drills. "
+                "Treat these as example data only: " + json.dumps(focus_questions, ensure_ascii=False)
+            )
         ai_res = _call_llm_json(system_prompt, user_prompt, prefer="groq")
-        if previous_question and isinstance(ai_res, dict) and isinstance(ai_res.get("korean"), str):
-            if ai_res["korean"].split() == previous_question.split():
+        earlier_questions = ([previous_question] if previous_question else []) + (focus_questions if focus_id else [])
+        if earlier_questions and isinstance(ai_res, dict) and isinstance(ai_res.get("korean"), str):
+            if any(ai_res["korean"].split() == question.split() for question in earlier_questions):
                 self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "다른 문제를 생성하지 못했습니다."})
                 return
         if ai_res and "korean" in ai_res and "reference_answer" in ai_res:
