@@ -18,6 +18,97 @@
 
   let learnedExpressions = [];
   let controlsReady = false;
+  let practiceBusy = false;
+  let settings = { mode: 'normal', level: 'auto', topic: 'auto' };
+  let reviewQueue = [];
+  let reviewIndex = 0;
+  const levels = ['A2', 'B1', 'B1+', 'B2', 'B2+'];
+
+  function renderSettings() {
+    const label = document.querySelector('#trainingSettings');
+    if (label) label.textContent = settings.mode === 'wrong' ? '오답 복습 · 저장된 원래 문제 · 다음 문제도 오답에서 나와요' : `일반 연습 · 난이도 ${settings.level === 'auto' ? '자동' : settings.level} · 주제 ${settings.topic === 'auto' ? '자동' : settings.topic}`;
+  }
+
+  function showReviewQuestion() {
+    const note = reviewQueue[reviewIndex++ % reviewQueue.length];
+    currentDrill = { ...note, training_mode: 'review' };
+    applyDrillToUI(currentDrill);
+    expandStatus.textContent = `오답 복습 ${((reviewIndex - 1) % reviewQueue.length) + 1}/${reviewQueue.length} · 원래 문제로 다시 풀어요`;
+    return true;
+  }
+
+  window.applyTrainingCommand = async (action) => {
+    if (practiceBusy) return '문제 생성이나 채점이 끝난 뒤 다시 요청해 주세요.';
+    if (action.finish_session) {
+      if (location.hash.startsWith('#learning-')) location.hash = '';
+      openSummaryModal();
+      return '오늘 훈련 결과를 열었어요.';
+    }
+    if (trialRequiresLogin()) {
+      showPracticeGate();
+      return '체험이 끝났어요. 로그인한 뒤 계속 연습해 주세요.';
+    }
+    if (action.next_question) {
+      if (settings.mode === 'wrong' && reviewQueue.length < 2) {
+        return '다른 오답 문제가 없어요. 새 문제를 풀려면 “일반 연습 시작해 줘”라고 말해 주세요.';
+      }
+      if (location.hash.startsWith('#learning-')) location.hash = '';
+      const success = await fetchAndRenderQuestion({ replaceCurrent: true });
+      if (!success) return '다른 문제를 준비하지 못했어요. 잠시 후 다시 요청해 주세요.';
+      practiceContent?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return settings.mode === 'wrong' ? '다음 오답 문제로 바꿨어요.' : '다른 문제로 바꿨어요.';
+    }
+    if (settings.mode === 'wrong' && !action.mode && (action.level || action.topic)) {
+      return '오답 복습은 저장된 원래 문제로 진행해요. “일반 연습 시작해 줘”로 돌아온 뒤 난이도와 주제를 바꿔 주세요.';
+    }
+    const next = { ...settings, ...action };
+    if (next.mode === 'wrong' && (action.level || action.topic)) {
+      return '오답 복습은 원래 문제로 진행해요. “오답노트로 연습해 줘” 또는 “일반 연습 시작해 줘”로 나눠서 요청해 주세요.';
+    }
+    if (['easier', 'harder'].includes(next.level)) {
+      const base = levels.indexOf(settings.level === 'auto' ? (currentDrill?.cefr_level || 'B1') : settings.level);
+      next.level = levels[Math.max(0, Math.min(levels.length - 1, base + (next.level === 'easier' ? -1 : 1)))];
+    }
+    if (next.mode === 'wrong') {
+      practiceBusy = true;
+      try {
+        let notes;
+        if (localStorage.getItem('jwt')) {
+          const response = await window.apiFetch('/api/drill_history');
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || '오답 기록을 불러오지 못했어요.');
+          const seen = new Set();
+          notes = (payload.history || []).filter(note => {
+            // Only the latest attempt for each question determines whether it is wrong.
+            if (seen.has(note.korean)) return false;
+            seen.add(note.korean);
+            return note.outcome ? note.outcome !== 'correct' : ![true, 1, 'true'].includes(note.is_correct);
+          });
+        } else {
+          notes = JSON.parse(localStorage.getItem('wrong_notes') || '[]');
+        }
+        const queue = notes.filter(n => n.korean && (n.corrected_sentence || n.corrected)).map(n => ({
+          korean: n.korean, category: n.category || '오답 복습',
+          reference_answer: n.corrected_sentence || n.corrected,
+          target_expression: n.target_expression || '', expression_id: n.expression_id || '',
+          cefr_level: n.cefr_level || 'B1', question_type: n.question_type || '',
+        }));
+        if (!queue.length) return '다시 풀 오답이 없어요. 먼저 영작을 연습해 주세요. 현재 문제는 유지할게요.';
+        reviewQueue = queue;
+        reviewIndex = 0;
+      } catch (error) {
+        return error.message || '오답 기록을 불러오지 못했어요. 현재 문제는 유지할게요.';
+      } finally { practiceBusy = false; }
+    }
+    settings = next;
+    renderSettings();
+    if (location.hash.startsWith('#learning-')) location.hash = '';
+    const success = await fetchAndRenderQuestion();
+    document.querySelector('#practiceContent')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return success
+      ? (settings.mode === 'wrong' ? `오답 ${reviewQueue.length}개로 복습을 시작했어요. 다음 문제도 오답에서 나와요. 난이도와 주제는 원래 문제 그대로예요.` : `난이도 ${settings.level === 'auto' ? '자동' : settings.level}, 주제 ${settings.topic === 'auto' ? '자동' : settings.topic}로 문제를 준비했어요.`)
+      : '설정은 적용했지만 문제를 준비하지 못했어요. 잠시 후 “새 문제 줘”로 다시 시도해 주세요.';
+  };
   const dailyStatsKey = `training_daily_${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })}`;
   let dailyStats = JSON.parse(localStorage.getItem(dailyStatsKey) || '{"solved":0,"correct":0,"timeTotal":0,"expressions":[]}');
   const trialCountKey = 'typing_trial_count';
@@ -45,6 +136,7 @@
   const practiceGate = document.querySelector('#practiceGate');
   const practiceContent = document.querySelector('#practiceContent');
   const practiceLogin = document.querySelector('#practiceLogin');
+  const practiceGateClose = document.querySelector('#practiceGateClose');
   const btnFinishSession = document.querySelector('#btnFinishSession');
   const summaryModal = document.querySelector('#summaryModal');
   const btnCloseSummary = document.querySelector('#btnCloseSummary');
@@ -55,15 +147,10 @@
     setupControls();
     const token = localStorage.getItem('jwt');
     if (!token) {
-      if (trialCount >= trialLimit) {
-        if (practiceGate) practiceGate.hidden = false;
-        if (practiceContent) practiceContent.hidden = true;
-      } else {
-        if (practiceGate) practiceGate.hidden = true;
-        if (practiceContent) practiceContent.hidden = false;
-        updateProgress();
-        await fetchAndRenderQuestion();
-      }
+      if (practiceGate) practiceGate.hidden = true;
+      if (practiceContent) practiceContent.hidden = false;
+      updateProgress();
+      await fetchAndRenderQuestion();
       return;
     }
     if (practiceGate) practiceGate.hidden = true;
@@ -73,17 +160,24 @@
   }
 
   // AI로 문제 받아오기 (실패 시 에러 표시)
-  async function fetchAndRenderQuestion(reviewExpression = null) {
-    koreanPrompt.textContent = '⏳ AI가 새 문제를 생성하는 중...';
-    feedbackContainer.hidden = true;
-    expandInput.value = '';
-    expandStatus.textContent = '입력창을 눌러 시작 · Enter로 즉시 채점';
-    isWaitingNext = false;
-    stopTimer();
-    clockSeconds.textContent = String(timerLimit);
-    clock.dataset.phase = 'normal';
-    clock.style.setProperty('--timer-progress', '100');
-    clock.setAttribute('aria-label', `남은 시간 ${timerLimit}초`);
+  async function fetchAndRenderQuestion({ replaceCurrent = false } = {}) {
+    if (practiceBusy) return false;
+    if (settings.mode === 'wrong' && reviewQueue.length) return showReviewQuestion();
+    practiceBusy = true;
+    const previousQuestion = replaceCurrent ? currentDrill?.korean : null;
+    if (!previousQuestion) {
+      currentDrill = null;
+      koreanPrompt.textContent = '⏳ AI가 새 문제를 생성하는 중...';
+      feedbackContainer.hidden = true;
+      expandInput.value = '';
+      expandStatus.textContent = '입력창을 눌러 시작 · Enter로 즉시 채점';
+      isWaitingNext = false;
+      stopTimer();
+      clockSeconds.textContent = String(timerLimit);
+      clock.dataset.phase = 'normal';
+      clock.style.setProperty('--timer-progress', '100');
+      clock.setAttribute('aria-label', `남은 시간 ${timerLimit}초`);
+    }
 
     try {
       const token = localStorage.getItem('jwt');
@@ -91,16 +185,20 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
-          review_expression: reviewExpression || null
+          ...(previousQuestion ? { previous_question: previousQuestion } : {}),
+          cefr_level: settings.level,
+          topic: settings.topic
         })
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (previousQuestion) return false;
         koreanPrompt.textContent = `❌ 문제 생성 실패: ${payload.error || '서버 오류'}`;
         expandStatus.textContent = '잠시 후 다시 시도해 주세요.';
         return;
       }
       if (!payload.korean) {
+        if (previousQuestion) return false;
         koreanPrompt.textContent = '❌ 생성된 문제 형식이 올바르지 않습니다.';
         expandStatus.textContent = '다시 시도해 주세요.';
         return;
@@ -109,14 +207,16 @@
       currentDrill = payload;
       applyDrillToUI(currentDrill);
       updateProgress();
+      return true;
     } catch (e) {
+      if (previousQuestion) return false;
       koreanPrompt.innerHTML = '❌ 연결이 일시적으로 지연되었습니다. <a href="#" id="btnRetryQuestion" style="color:var(--orange); text-decoration:underline; font-size:15px; margin-left:6px;">다시 시도 🔄</a>';
       expandStatus.textContent = '클릭하여 다시 문제를 받아오세요.';
       document.querySelector('#btnRetryQuestion')?.addEventListener('click', (ev) => {
         ev.preventDefault();
         fetchAndRenderQuestion();
       });
-    }
+    } finally { practiceBusy = false; }
   }
 
   function applyDrillToUI(drill) {
@@ -140,9 +240,19 @@
     if (practiceLogin) {
       practiceLogin.addEventListener('click', () => document.querySelector('#authBtn')?.click());
     }
+    practiceGateClose?.addEventListener('click', closePracticeGate);
+    practiceGate?.addEventListener('click', e => {
+      if (e.target === practiceGate) closePracticeGate();
+    });
     // 입력창 포커스 시 타이머 가동
     expandInput.addEventListener('focus', () => {
-      if (!timerRunning && !isWaitingNext) startTimer();
+      if (!practiceBusy && currentDrill && !trialRequiresLogin() && !timerRunning && !isWaitingNext) startTimer();
+    });
+    expandInput.addEventListener('input', () => {
+      if (trialRequiresLogin()) {
+        stopTimer();
+        showPracticeGate();
+      }
     });
 
     // 폼 제출 (Enter)
@@ -209,6 +319,13 @@
   // 5. 문제 렌더링
   // 6. 답안 제출 및 평가 (Local & Server 하이브리드)
   async function handleSubmit() {
+    if (practiceBusy || !currentDrill) return;
+    if (trialRequiresLogin()) {
+      stopTimer();
+      showPracticeGate();
+      return;
+    }
+
     if (isWaitingNext) {
       nextDrill();
       return;
@@ -222,6 +339,7 @@
     }
 
     stopTimer();
+    practiceBusy = true;
     const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
     expandStatus.textContent = 'AI 분석 중...';
 
@@ -258,6 +376,7 @@
     }
 
     renderFeedback(evalResult, text, timeSpent);
+    practiceBusy = false;
   }
 
   // 로컬 즉각 스마트 평가 엔진 (오프라인/GitHub Pages 지원)
@@ -320,11 +439,8 @@
       localStorage.setItem(trialCountKey, String(trialCount));
       if (trialCount >= trialLimit) {
         stopTimer();
-        isWaitingNext = false;
-        if (practiceContent) practiceContent.hidden = true;
-        if (practiceGate) practiceGate.hidden = false;
-        expandStatus.textContent = '체험 10문장을 모두 완료했어요. 로그인하면 이어서 연습할 수 있어요.';
-        return;
+        showPracticeGate();
+        expandStatus.textContent = '체험판이 종료됐어요. 계속 이용하려면 로그인해 주세요.';
       }
     }
 
@@ -347,7 +463,11 @@
         korean: currentDrill.korean,
         userText: userText,
         corrected: res.corrected_sentence,
-        reason: res.short_reason
+        reason: res.short_reason,
+        target_expression: currentDrill.target_expression,
+        expression_id: currentDrill.expression_id,
+        cefr_level: currentDrill.cefr_level,
+        question_type: currentDrill.question_type
       });
     }
 
@@ -379,6 +499,19 @@
     } else {
       progressText.textContent = `오늘 ${dailyStats.solved}문장`;
     }
+  }
+
+  function trialRequiresLogin() {
+    return !localStorage.getItem('jwt') && trialCount >= trialLimit;
+  }
+
+  function showPracticeGate() {
+    if (practiceGate) practiceGate.hidden = false;
+  }
+
+  function closePracticeGate() {
+    if (practiceGate) practiceGate.hidden = true;
+    expandInput?.focus();
   }
 
   function updateBadges() {
@@ -491,6 +624,7 @@
 
   // 11. 세션 종료 요약 모달
   function openSummaryModal() {
+    stopTimer();
     document.querySelector('#sumTotalSolved').textContent = `${dailyStats.solved}개`;
     const acc = dailyStats.solved ? Math.round((dailyStats.correct / dailyStats.solved) * 100) : 0;
     document.querySelector('#sumAccuracy').textContent = `${acc}%`;

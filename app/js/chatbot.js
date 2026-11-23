@@ -189,8 +189,8 @@ window.apiFetch = apiFetch;
 
   function showMenu(announce = true) {
     mode = 'menu';
-    input.placeholder = '메뉴 번호(1, 2, 3)를 입력하거나 버튼을 누르세요';
-    if (announce) appendMessage('--- typing Agent ---\n원하는 메뉴를 선택하세요.');
+    input.placeholder = '예: 다른 문제로 바꿔 줘';
+    if (announce) appendMessage('--- typing Agent ---\n연습을 말로 바꿔 보세요. 오답 복습, 난이도, 주제를 조절할 수 있어요.\n명령 선택은 규칙 기반입니다.');
     renderChoices([
       { label: '1. 프로젝트 소개',    action: () => selectMenu('1', '1. 프로젝트 소개') },
       { label: '2. FAQ 대화',         action: () => selectMenu('2', '2. FAQ 대화') },
@@ -228,7 +228,6 @@ window.apiFetch = apiFetch;
         mode = 'search';
         input.placeholder = "문법 질문 입력 (끝내려면 '그만')";
         renderChoices([
-          { label: '예: did 다음에 went를 써도 돼?', action: () => sendSearch('did 다음에 went를 써도 돼?') },
           { label: '그만 (메뉴로)',                   action: () => sendSearch('그만') },
         ]);
       } else {
@@ -297,15 +296,50 @@ window.apiFetch = apiFetch;
     (open ? input : fab).focus();
   }
 
+  async function sendTraining(text) {
+    if (busy) return;
+    busy = true;
+    let handled = true;
+    try {
+      const response = await apiFetch('/api/training_command', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || '요청을 처리하지 못했어요.');
+      handled = result.handled;
+      if (handled) {
+        appendMessage(text, true);
+        if (result.action) {
+          appendMessage(window.applyTrainingCommand
+            ? await window.applyTrainingCommand(result.action)
+            : '연습 화면을 준비하는 중이에요. 잠시 후 다시 요청해 주세요.');
+          const summary = result.action.finish_session && document.querySelector('#summaryModal');
+          if (summary && !summary.hidden) {
+            setOpen(false);
+            document.querySelector('#btnCloseSummary')?.focus();
+          }
+        } else appendMessage(result.message);
+      }
+    } catch (error) {
+      appendMessage(error.message || '서버에 연결하지 못했어요.');
+    } finally { busy = false; }
+    return handled;
+  }
+
   fab.addEventListener('click', () => setOpen(panel.hidden));
   closeBtn.addEventListener('click', () => setOpen(false));
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) setOpen(false); });
 
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy) return;
     const value = input.value.trim();
     input.value = '';
+    if (!value) return;
+    if (['menu', 'chat'].includes(mode) && !['1', '2', '3', '0', '그만'].includes(value)) {
+      if (await sendTraining(value)) return;
+    }
     if (mode === 'menu') {
       if (['1','2','3','0'].includes(value)) selectMenu(value, value);
       else { if (value) appendMessage(value, true); appendMessage('1, 2, 3, 0 중에서 선택하세요.'); }

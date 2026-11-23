@@ -196,7 +196,7 @@
 .auth-nav-btn { margin-left: 4px; }
 .links .auth-nav-btn:hover { background:var(--ink); color:#fff; }
 .practice-overlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:24px;background:rgba(36,38,34,.42);backdrop-filter:blur(3px)}
-.practice-overlay[hidden]{display:none}.practice-overlay-card{max-width:430px;padding:36px;background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 48px #24262230;text-align:center}.practice-overlay-card h1{font-size:30px;margin:15px 0}.practice-overlay-card p{color:var(--muted);line-height:1.8;margin-bottom:22px}.practice-overlay-card .outline-button{display:inline-block;margin-left:8px}
+.practice-overlay[hidden]{display:none}.practice-overlay-card{position:relative;max-width:430px;padding:36px;background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 48px #24262230;text-align:center}.practice-overlay-card h1{font-size:30px;margin:15px 0}.practice-overlay-card p{color:var(--muted);line-height:1.8;margin-bottom:22px}.practice-overlay-card .outline-button{display:inline-block;margin-left:8px}
 @media(max-width:640px) {
   .auth-modal { padding: 28px 22px 24px; }
 }

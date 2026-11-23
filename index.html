@@ -46,10 +46,11 @@
           <p>한글 상황을 보고 60초 안에 영어 문장을 작성합니다. 답안을 제출하면 교정 피드백을 받고 다음 상황으로 이어집니다.</p>
         </div>
 
-        <section id="practiceGate" class="practice-gate practice-overlay" hidden>
+        <section id="practiceGate" class="practice-gate practice-overlay" role="dialog" aria-modal="true" aria-labelledby="practiceGateTitle" hidden>
           <div class="practice-overlay-card">
-            <h2>로그인 후 영작을 시작할 수 있어요</h2>
-            <p>학습 기록과 복습 진도를 계정에 저장합니다.</p>
+            <button id="practiceGateClose" class="auth-close" type="button" aria-label="닫기">×</button>
+            <h2 id="practiceGateTitle">체험판이 종료됐어요</h2>
+            <p>계속 이용하려면 로그인해 주세요.</p>
             <button id="practiceLogin" class="button" type="button">로그인 / 회원가입</button>
           </div>
         </section>
@@ -63,6 +64,7 @@
             </div>
           </div>
           <section class="writing-workspace" aria-label="영작 훈련">
+            <p id="trainingSettings" aria-live="polite">일반 연습 · 난이도 자동 · 주제 자동 — 챗봇에서 바꿀 수 있어요.</p>
             <div class="korean-prompt" id="koreanPrompt">AI가 실전 상황을 준비하고 있습니다...</div>
             <form id="expandForm">
               <div class="expand-surface" id="expandSurface">
