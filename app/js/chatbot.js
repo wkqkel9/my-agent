@@ -166,6 +166,7 @@ window.apiFetch = apiFetch;
   let mode = 'menu';
   let userName = '사용자';
   let busy = false;
+  let pendingSettings = null;
 
   function appendMessage(text, isUser = false) {
     const node = document.createElement('div');
@@ -189,6 +190,7 @@ window.apiFetch = apiFetch;
 
   function showMenu(announce = true) {
     mode = 'menu';
+    pendingSettings = null;
     input.placeholder = '예: 다른 문제로 바꿔 줘';
     if (announce) appendMessage('--- typing Agent ---\n연습을 말로 바꿔 보세요. 오답 복습, 난이도, 주제를 조절할 수 있어요.');
     renderChoices([
@@ -200,6 +202,7 @@ window.apiFetch = apiFetch;
 
   async function selectMenu(choice, userLabel) {
     if (busy) return;
+    pendingSettings = null;
     if (userLabel) appendMessage(userLabel, true);
     busy = true;
     try {
@@ -303,13 +306,16 @@ window.apiFetch = apiFetch;
     try {
       const response = await apiFetch('/api/training_command', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(pendingSettings ? { text, pending: pendingSettings } : { text }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || '요청을 처리하지 못했어요.');
       handled = result.handled;
       if (handled) {
         appendMessage(text, true);
+        if (result.action || Object.hasOwn(result, 'pending')) {
+          pendingSettings = result.pending ?? null;
+        }
         if (result.action) {
           appendMessage(window.applyTrainingCommand
             ? await window.applyTrainingCommand(result.action)
@@ -329,6 +335,7 @@ window.apiFetch = apiFetch;
 
   fab.addEventListener('click', () => setOpen(panel.hidden));
   closeBtn.addEventListener('click', () => setOpen(false));
+  window.addEventListener('authchange', () => { pendingSettings = null; });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) setOpen(false); });
 
   form.addEventListener('submit', async event => {
@@ -337,7 +344,8 @@ window.apiFetch = apiFetch;
     const value = input.value.trim();
     input.value = '';
     if (!value) return;
-    if (window.hasPendingReview?.() && /^(시작|취소)[.!]?$/.test(value)) {
+    const reviewDecision = pendingSettings ? /^시작[.!]?$/ : /^(시작|취소)[.!]?$/;
+    if (window.hasPendingReview?.() && reviewDecision.test(value)) {
       busy = true;
       appendMessage(value, true);
       try {
