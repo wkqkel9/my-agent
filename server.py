@@ -11,7 +11,7 @@ from urllib.parse import quote, unquote, urlparse, parse_qs
 import bot
 import search as semantic_search
 from training_commands import (
-    CATEGORIES, LEVELS as CEFR_LEVELS, SYSTEM_PROMPT, TOOLS, FOLLOWUP_TOOL, TOPIC_MAX_LENGTH,
+    CATEGORIES, LEVELS as CEFR_LEVELS, SYSTEM_PROMPT, TOOLS, FOLLOWUP_TOOL, TOPIC_MAX_LENGTH, PASS_THROUGH_TOOL,
     resolve_tool_call, short_clarification_reply, valid_pending, valid_topic,
 )
 
@@ -108,11 +108,20 @@ def _username_email(username: str) -> str:
 
 def _call_chat_completion(payload, decode):
     groq_key = os.getenv("GROQ_API_KEY", "").strip()
+    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
     openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+    nim_key = os.getenv("NVIDIA_NIM_API_KEY", "").strip()
 
     providers = []
     if groq_key:
         providers.append(("https://api.groq.com/openai/v1/chat/completions", groq_key, "openai/gpt-oss-120b"))
+
+    gemini_endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    if gemini_key:
+        providers.append((gemini_endpoint, gemini_key, os.getenv("GEMINI_MODEL") or "gemini-3.1-flash-lite"))
+
+    if nim_key:
+        providers.append(("https://integrate.api.nvidia.com/v1/chat/completions", nim_key, os.getenv("NVIDIA_NIM_MODEL", "nvidia/nemotron-3-8b-instruct")))
 
     if openai_key:
         providers.append(("https://api.openai.com/v1/chat/completions", openai_key, "gpt-4o-mini"))
@@ -121,6 +130,29 @@ def _call_chat_completion(payload, decode):
         return None
 
     for endpoint, api_key, model in providers:
+        request_payload = {**payload, "model": model}
+        if endpoint == gemini_endpoint:
+            request_payload.pop("parallel_tool_calls", None)
+            request_payload["max_tokens"] = request_payload.pop("max_completion_tokens", 1024)
+            if model == "gemini-3.1-flash-lite":
+                request_payload["reasoning_effort"] = "minimal"
+            if "tools" in payload:
+                request_payload["tool_choice"] = "required"
+                request_payload["tools"] = [*payload["tools"], {
+                    "type": "function",
+                    "function": {
+                        "name": PASS_THROUGH_TOOL,
+                        "description": "Use for unrelated messages, including English grammar questions.",
+                        "parameters": {"type": "object", "properties": {}},
+                    },
+                }]
+                system_message, *other_messages = payload["messages"]
+                request_payload["messages"] = [{
+                    **system_message,
+                    "content": system_message["content"]
+                    + f"\nCall {PASS_THROUGH_TOOL} for unrelated messages instead of leaving the tool call empty. "
+                    "For service questions, call explain_practice.",
+                }, *other_messages]
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -129,7 +161,7 @@ def _call_chat_completion(payload, decode):
         try:
             req = urllib.request.Request(
                 endpoint,
-                data=json.dumps({**payload, "model": model}).encode("utf-8"),
+                data=json.dumps(request_payload).encode("utf-8"),
                 headers=headers,
                 method="POST"
             )

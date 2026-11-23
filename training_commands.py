@@ -24,6 +24,7 @@ SETTING_PARAMETERS = {
 
 FOLLOWUP_TOOL = "answer_practice_clarification"
 EXPLAIN_TOOL = "explain_practice"
+PASS_THROUGH_TOOL = "pass_to_existing_chat"
 
 FUNCTIONS = {
     "change_practice_settings": (
@@ -217,6 +218,8 @@ def resolve_tool_call(message, text, pending=None):
         return no_action
     if not isinstance(arguments, dict):
         return no_action
+    if name == PASS_THROUGH_TOOL and not arguments:
+        return {"handled": False}
     if name == EXPLAIN_TOOL:
         subject, answer = arguments.get("subject"), arguments.get("answer")
         if isinstance(subject, str) and subject in CATALOG_ANSWERS:
