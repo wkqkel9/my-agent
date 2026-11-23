@@ -8,6 +8,10 @@ services:
         value: 8000
       - key: GROQ_API_KEY
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_BACKUP_API_KEY
+        sync: false
       - key: NVIDIA_NIM_API_KEY
         sync: false
       - key: NVIDIA_NIM_MODEL

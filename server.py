@@ -109,6 +109,7 @@ def _username_email(username: str) -> str:
 def _call_chat_completion(payload, decode):
     groq_key = os.getenv("GROQ_API_KEY", "").strip()
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+    gemini_backup_key = os.getenv("GEMINI_BACKUP_API_KEY", "").strip()
     openai_key = os.getenv("OPENAI_API_KEY", "").strip()
     nim_key = os.getenv("NVIDIA_NIM_API_KEY", "").strip()
 
@@ -117,8 +118,11 @@ def _call_chat_completion(payload, decode):
         providers.append(("https://api.groq.com/openai/v1/chat/completions", groq_key, "openai/gpt-oss-120b"))
 
     gemini_endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    gemini_model = os.getenv("GEMINI_MODEL") or "gemini-3.1-flash-lite"
     if gemini_key:
-        providers.append((gemini_endpoint, gemini_key, os.getenv("GEMINI_MODEL") or "gemini-3.1-flash-lite"))
+        providers.append((gemini_endpoint, gemini_key, gemini_model))
+    if gemini_backup_key and gemini_backup_key != gemini_key:
+        providers.append((gemini_endpoint, gemini_backup_key, gemini_model))
 
     if nim_key:
         providers.append(("https://integrate.api.nvidia.com/v1/chat/completions", nim_key, os.getenv("NVIDIA_NIM_MODEL", "nvidia/nemotron-3-8b-instruct")))
