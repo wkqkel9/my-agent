@@ -22,8 +22,14 @@ create table if not exists public.drill_history (
   favorite boolean not null default false,
   expression_id text,
   training_mode text,
-  question_type text
+  question_type text,
+  target_expression text
 );
+alter table public.drill_history add column if not exists corrected_sentence text;
+alter table public.drill_history add column if not exists feedback_points jsonb;
+alter table public.drill_history add column if not exists missed_nuance text;
+alter table public.drill_history add column if not exists outcome text;
+alter table public.drill_history add column if not exists target_expression text;
 create index if not exists drill_history_user_created_idx on public.drill_history (user_id, created_at desc);
 
 create table if not exists public.expression_progress (

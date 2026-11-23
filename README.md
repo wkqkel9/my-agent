@@ -6,17 +6,14 @@
 
 ```text
 index.html          영작 훈련 · 서비스 소개 · 동작 구조
-app/writing.html    기존 영작 페이지 (메뉴에서 제외)
-app/copywriting.html 기존 필사 페이지 (메뉴에서 제외)
-app/features.html   기존 기능 기록 페이지 (메뉴에서 제외)
+app/js/writing.js   메인 영작 훈련 스크립트
 app/js/chatbot.js   웹 챗봇 UI (로컬/Docker 백엔드 연동)
+app/js/history.js   로그인 사용자의 학습 기록·분석
 server.py           정적 웹 서빙 + main.py/bot.py 연결 서버
 main.py             로컬 Python Agent 메뉴
 bot.py              FAQ 규칙 대화
 data/faq.txt        검토한 FAQ 규칙
 data/grammar_guide.txt  3회차 영문법 검색 자료
-data/agent.db       로컬 SQLite 기록 (Git 제외)
-planning/writing.md 영작 기능 기획 문서
 Dockerfile          컨테이너 실행 정의
 docker-compose.yml  로컬/이동 실행 및 data/ 볼륨 연결
 ```
@@ -47,7 +44,7 @@ docker-compose.yml  로컬/이동 실행 및 data/ 볼륨 연결
 
 ## Supabase 로그인과 학습 동기화
 
-로컬에서 실행할 때 학습 기록은 Git에 포함되지 않는 `data/agent.db` SQLite 파일에 저장됩니다. `SUPABASE_URL`과 `SUPABASE_ANON_KEY`가 설정된 배포에서는 로그인한 사용자의 영작 기록·표현 복습 진도·내부 CEFR 레벨을 Supabase에 저장합니다. 로그인하지 않아도 연습은 가능하며, 로그인은 기기 간 기록 동기화와 본인 데이터 분리를 위한 선택 기능입니다.
+로컬과 배포 모두 로그인한 사용자의 영작 기록·표현 복습 진도·내부 CEFR 레벨을 Supabase에 저장합니다.
 
 Supabase SQL Editor에서 `supabase/schema.sql`을 실행합니다. RLS는 `auth.uid()`와 `user_id`가 같은 행만 읽고 쓰게 하므로, 다른 사용자의 학습 기록은 접근할 수 없습니다. AI API 키는 서버 환경 변수에만 둡니다.
 

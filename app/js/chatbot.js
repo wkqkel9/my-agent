@@ -65,9 +65,13 @@ async function guardPractice(feature, gateId = 'practiceGate') {
   const gate = document.getElementById(gateId);
   if (!gate) return;
   const content = document.getElementById('practiceContent');
-  // 연습 자체는 공개한다. 로그인은 기기 간 학습 이력 동기화에만 사용한다.
-  gate.hidden = true;
-  if (content) content.hidden = false;
+  if (authToken) {
+    gate.hidden = true;
+    if (content) content.hidden = false;
+  } else {
+    // 로그인 전 표시 상태는 writing.js의 20문장 체험 카운터가 관리한다.
+    window.dispatchEvent(new Event('trialgatecheck'));
+  }
 }
 document.getElementById('practiceLogin')?.addEventListener('click',()=>{setAuthMode('login');showAuth(true);});
 guardPractice(document.body.dataset.protectedFeature);
@@ -143,6 +147,7 @@ async function apiFetch(url, opts = {}) {
   }
   return response;
 }
+window.apiFetch = apiFetch;
 
 // ── chatbot ───────────────────────────────────────────────────────
 (() => {

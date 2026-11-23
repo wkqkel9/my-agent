@@ -4,257 +4,228 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f9f8f5">
-  <meta name="description" content="실전 상황을 보고 영어 문장으로 표현하는 AI 영작 훈련, typing.">
+  <meta name="description" content="한글 상황을 보고 영어 문장을 쓰고 AI 피드백을 받는 실전 영작 훈련, typing.">
   <title>typing — 실전 영작 훈련</title>
   <link rel="stylesheet" href="./app/css/site.css">
-  <script src="./app/js/writing.js" defer></script>
-  <script src="./app/js/chatbot.js" defer></script>
 </head>
 <body>
-  <div id="authBox" class="auth-modal" aria-modal="true" role="dialog" aria-label="로그인" hidden>
+  <div id="authBox" class="auth-modal" aria-modal="true" role="dialog" hidden aria-labelledby="authTitle" aria-describedby="authDescription">
     <div class="auth-modal-inner">
-      <button class="auth-close" id="authClose" aria-label="닫기">×</button>
+      <button class="auth-close" id="authClose" type="button" aria-label="닫기">×</button>
       <div class="eyebrow"><span id="authEyebrow">Sign in</span></div>
       <h2 id="authTitle">로그인</h2>
+      <p class="auth-description" id="authDescription">로그인하고 학습 기록을 어디서든 이어서 확인하세요.</p>
       <div class="auth-fields">
-        <input id="authUsername" type="text" placeholder="아이디" autocomplete="username" minlength="3" maxlength="32" required>
-        <input id="authPwd" type="password" placeholder="비밀번호" autocomplete="current-password" required>
+        <label class="auth-label" for="authUsername">아이디</label>
+        <input id="authUsername" type="text" placeholder="아이디 입력" autocomplete="username" minlength="3" maxlength="32" required>
+        <label class="auth-label" for="authPwd">비밀번호</label>
+        <input id="authPwd" type="password" placeholder="비밀번호 입력" autocomplete="current-password" required>
       </div>
-      <button id="authSubmit" class="button">로그인</button>
-      <p id="authMsg" class="auth-msg"></p>
-      <p class="auth-toggle-wrap"><a href="#" id="toggleAuth" class="auth-toggle">회원가입</a></p>
+      <button id="authSubmit" class="button" type="button">로그인</button>
+      <p id="authMsg" class="auth-msg" role="status" aria-live="polite"></p>
+      <p class="auth-toggle-wrap"><span id="authTogglePrompt">처음 방문하셨나요?</span> <a href="#" id="toggleAuth" class="auth-toggle">회원가입</a></p>
     </div>
   </div>
   <div id="authOverlay" class="auth-overlay" hidden></div>
 
-  <div class="wrap home-wrap">
+  <div class="wrap">
     <nav aria-label="주 메뉴">
-      <a class="brand" href="#practice" aria-label="typing 홈">
-        <span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing
-      </a>
+      <a class="brand" href="#" aria-label="typing 홈"><span class="symbol" aria-hidden="true"><i></i><i></i><i></i></span>typing</a>
       <div class="links">
+        <a class="learning-nav-link" data-learning-link="history" href="#learning-history" hidden>학습 기록</a>
+        <a class="learning-nav-link" data-learning-link="analysis" href="#learning-analysis" hidden>학습 분석</a>
         <button id="authBtn" class="auth-nav-btn">로그인</button>
       </div>
     </nav>
 
     <main>
-      <section id="practice" class="practice-lead" aria-labelledby="practiceTitle">
+      <section class="practice-lead" aria-labelledby="mainPracticeTitle">
         <div class="practice-lead-head">
           <div class="eyebrow">A little practice. Real English.</div>
-          <h1 id="practiceTitle">실전 상황을,<br>내 영어로 표현해보세요.</h1>
-          <p>한글 상황을 보고 60초 안에 영어 문장을 작성합니다. 답안을 제출하면 바로 교정 피드백을 받고, 다음 상황으로 이어집니다.</p>
+          <h1 id="mainPracticeTitle">실전 상황을,<br><span>내 영어로 표현해보세요.</span></h1>
+          <p>한글 상황을 보고 60초 안에 영어 문장을 작성합니다. 답안을 제출하면 교정 피드백을 받고 다음 상황으로 이어집니다.</p>
         </div>
 
         <section id="practiceGate" class="practice-gate practice-overlay" hidden>
           <div class="practice-overlay-card">
-            <h1>오늘의 무료 체험 완료!</h1>
-            <p id="practiceGateMessage">5문장 무료 체험을 완료했습니다. 로그인하면 기록을 기기 간에 동기화할 수 있습니다.</p>
-            <div>
-              <button id="practiceLogin" class="button">로그인 / 회원가입</button>
-              <button id="continueTrialBtn" class="outline-button">게스트로 계속하기</button>
-            </div>
+            <h2>로그인 후 영작을 시작할 수 있어요</h2>
+            <p>학습 기록과 복습 진도를 계정에 저장합니다.</p>
+            <button id="practiceLogin" class="button" type="button">로그인 / 회원가입</button>
           </div>
         </section>
 
-        <main id="practiceContent" class="practice-card">
+        <main id="practiceContent" class="practice-card demo" hidden>
           <div class="practice-status">
-            <span id="progressText">오늘 0문장</span>
+            <span id="progressText">체험 0/10문장</span>
             <div class="practice-status-actions">
-              <span class="clock" id="clock" role="timer" aria-label="남은 시간 60초" data-phase="normal" data-running="false">
-                <span id="clockSeconds" aria-hidden="true">60</span>
-              </span>
+              <span class="clock" id="clock" role="timer" aria-label="남은 시간 60초" data-phase="normal" data-running="false"><span id="clockSeconds" aria-hidden="true">60</span></span>
               <button type="button" id="btnFinishSession" class="drill-pill-btn">훈련 마치기</button>
             </div>
           </div>
-
           <section class="writing-workspace" aria-label="영작 훈련">
-            <div class="demo">
-              <div class="demo-head">
-                <span>실전 영작</span>
-                <span>한글 상황 → 영어 문장</span>
+            <div class="korean-prompt" id="koreanPrompt">AI가 실전 상황을 준비하고 있습니다...</div>
+            <form id="expandForm">
+              <div class="expand-surface" id="expandSurface">
+                <div id="expandHighlight" aria-hidden="true"></div>
+                <textarea id="expandInput" aria-label="한글 문장을 영어로 쓰기" placeholder="영어 문장을 쓰고 Enter를 누르세요." enterkeyhint="send" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" maxlength="500" rows="2"></textarea>
               </div>
-              <div class="korean-prompt" id="koreanPrompt">AI가 실전 상황을 준비하고 있습니다...</div>
-              <form id="expandForm">
-                <div class="expand-surface" id="expandSurface">
-                  <div id="expandHighlight" aria-hidden="true"></div>
-                  <textarea id="expandInput" aria-label="한글 문장을 영어로 쓰기" placeholder="클릭하면 타이머가 시작돼요. 영어 문장을 쓰고 Enter를 누르세요." enterkeyhint="send" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" maxlength="500" rows="2"></textarea>
-                </div>
-                <div id="feedbackContainer" class="expansion-feedback-slot" hidden>
-                  <section id="expansionFeedback" class="answer-feedback" aria-label="영작 피드백" aria-live="polite">
-                    <div class="feedback-heading">
-                      <strong id="feedbackTitle">교정 피드백</strong>
-                      <span id="resultBadge"></span>
-                    </div>
-                    <div class="corrected-answer">
-                      <span>교정된 원어민 문장</span>
-                      <div id="correctedSentence"></div>
-                    </div>
-                    <div id="feedbackReason" class="feedback-reason"></div>
-                    <div class="drill-action-bar">
-                      <button type="button" id="btnToggleFavorite" class="btn-favorite btn-favorite-icon" aria-label="즐겨찾기에 보관" aria-pressed="false" title="즐겨찾기에 보관">☆</button>
-                      <button type="button" id="btnNextDrill" class="button small-button">다음 문제 도전 → (Enter)</button>
-                    </div>
-                  </section>
-                </div>
-                <span class="status" id="expandStatus" role="status">입력창을 눌러 시작 · Enter로 즉시 채점</span>
-              </form>
-            </div>
+              <div id="feedbackContainer" class="expansion-feedback-slot" hidden>
+                <section id="expansionFeedback" class="answer-feedback" aria-label="영작 피드백" aria-live="polite">
+                  <div class="feedback-heading"><strong id="feedbackTitle">AI 피드백</strong></div>
+                  <div class="corrected-answer"><span>교정문</span><div id="correctedSentence"></div></div>
+                  <div id="feedbackReason" class="feedback-reason"></div>
+                  <div class="drill-action-bar">
+                    <button type="button" id="btnToggleFavorite" class="btn-favorite btn-favorite-icon" aria-label="즐겨찾기에 보관" aria-pressed="false">☆</button>
+                    <button type="button" id="btnNextDrill" class="button">다음 문제 도전 (Enter)</button>
+                  </div>
+                </section>
+              </div>
+              <span class="status" id="expandStatus" role="status">입력창을 눌러 시작 · Enter로 즉시 채점</span>
+            </form>
           </section>
         </main>
 
         <div id="summaryModal" class="practice-overlay" hidden>
           <div class="summary-modal-card">
-            <div class="summary-modal-head">
-              <h2>오늘 훈련 결과</h2>
-              <button type="button" id="btnCloseSummary" class="auth-close">×</button>
-            </div>
-            <p class="summary-lead">오늘의 훈련 기록입니다.</p>
+            <div class="summary-modal-head"><h2>오늘 훈련 결과</h2><button type="button" id="btnCloseSummary" class="auth-close">×</button></div>
             <div class="summary-stats-grid">
-              <div class="summary-stat-box"><div id="sumTotalSolved" class="summary-stat-num">0</div><div class="summary-stat-label">완료한 문장</div></div>
+              <div class="summary-stat-box"><div id="sumTotalSolved" class="summary-stat-num">0</div><div class="summary-stat-label">완료 문장</div></div>
               <div class="summary-stat-box"><div id="sumAccuracy" class="summary-stat-num">0%</div><div class="summary-stat-label">정답률</div></div>
-              <div class="summary-stat-box"><div id="sumAvgSpeed" class="summary-stat-num">0초</div><div class="summary-stat-label">평균 속도</div></div>
+              <div class="summary-stat-box"><div id="sumAvgSpeed" class="summary-stat-num">0초</div><div class="summary-stat-label">평균 시간</div></div>
             </div>
-            <h3 class="summary-title">오늘 연습한 표현</h3>
+            <h3 class="summary-title">오늘 집중한 핵심 표현</h3>
             <div id="sumKeyExpressions" class="summary-list"></div>
-            <div class="summary-actions"><button type="button" id="btnSummaryContinue" class="button">훈련 계속하기 →</button></div>
+            <div class="summary-actions"><button type="button" id="btnSummaryContinue" class="button">훈련 계속하기</button></div>
           </div>
         </div>
       </section>
 
-      <section class="project-intro" id="about" aria-labelledby="aboutTitle">
+      <section class="project-intro" aria-labelledby="serviceTitle">
         <div class="intro-heading">
           <div class="eyebrow">The service</div>
-          <h2 id="aboutTitle">영어 면접 답변을 내 말로 만들어갑니다</h2>
+          <h2 id="serviceTitle">다양한 상황을 자연스러운 영어로 표현합니다</h2>
         </div>
-        <p class="project-lead">typing은 면접과 실무 상황에서 내 생각을 영어로 표현하는 연습을 합니다. 한글 상황을 보고 직접 문장을 써 보고, 자연스러운 답안과 수정 이유를 확인한 뒤 다음 상황으로 이어갑니다.</p>
+        <p class="project-lead">AI가 만든 한글 상황을 보고 영어 문장을 써 보는 훈련입니다. 답안을 제출하면 교정문과 수정 이유를 확인하고 다음 상황으로 이어갑니다.</p>
         <div class="service-detail">
           <section>
-            <h3>무엇을 할 수 있나요?</h3>
+            <h3>바로 써보는 훈련</h3>
             <ul>
-              <li>면접이나 업무에서 나올 상황을 읽고 영어 문장을 직접 써 봅니다.</li>
-              <li>60초 안에 떠올려 답하면 말문이 막히는 상황에도 준비할 수 있습니다.</li>
-              <li>모범 답안과 한국어 피드백으로 왜 바꿔야 하는지 바로 확인합니다.</li>
-              <li>일상, 프로젝트, 팀 협업, 실수와 회고처럼 다양한 이야기로 연습 범위를 넓힙니다.</li>
+              <li><strong>실전영작</strong> — 한글 상황을 보고 영어 문장으로 직접 써봅니다.</li>
+              <li><strong>타임드릴</strong> — 60초 안에 표현을 떠올리고 바로 문장으로 만듭니다.</li>
+              <li><strong>일상표현</strong> — 경험, 원인, 협업, 실수와 회고까지 문장 패턴을 익힙니다.</li>
+              <li><strong>AI교정</strong> — 의미와 문법을 확인하고 자연스러운 표현과 수정 이유를 알려줍니다.</li>
             </ul>
           </section>
           <section>
-            <h3>어떻게 실력 향상을 돕나요?</h3>
-            <ol>
-              <li>실제로 자주 쓰는 상황과 문장 패턴을 하나씩 익힙니다.</li>
-              <li>틀린 말과 어색한 표현은 이유를 확인한 뒤 다른 상황에서 다시 만납니다.</li>
-              <li>어려웠던 문장은 자연스럽게 더 자주 다시 나오고, 익숙해진 문장은 간격을 둡니다.</li>
-              <li>짧은 문장에서 원인과 결과를 설명하는 문장까지 조금씩 길게 확장합니다.</li>
-            </ol>
+            <h3>계속 성장하는 방식</h3>
+            <ul>
+              <li><strong>오답복습</strong> — 틀린 표현은 다른 상황에서 다시 만나 익숙해진 표현은 간격을 둡니다.</li>
+              <li><strong>맞춤훈련</strong> — 틀리고 맞힌 기록을 반영해 수준과 자주 어려운 표현에 맞춘 문제를 제공합니다.</li>
+              <li><strong>수준조절</strong> — 정답과 오답에 따라 난이도를 조금씩 높거나 낮춰 안정적으로 연습합니다.</li>
+            </ul>
           </section>
         </div>
       </section>
 
-      <section class="architecture" id="architecture" aria-labelledby="architectureTitle">
+      <section class="architecture" aria-labelledby="architectureTitle">
         <div class="architecture-heading">
           <div class="eyebrow">Architecture</div>
-          <h2 id="architectureTitle">서비스 구조</h2>
+          <h2 id="architectureTitle">영작 제출 한 번이 이렇게 처리됩니다</h2>
+          <p>사용자 답안은 서버와 AI를 거쳐 판정되고, 개인 학습 기록과 표현 진도로 저장됩니다.</p>
         </div>
-        <figure class="architecture-diagram" aria-label="GitHub에서 Render로 배포되고, 브라우저가 Python API를 거쳐 AI와 데이터베이스에 연결되는 구조">
-          <svg viewBox="0 0 1120 430" role="img" aria-labelledby="architectureDiagramTitle architectureDiagramDesc">
-            <title id="architectureDiagramTitle">typing 서비스 아키텍처</title>
-            <desc id="architectureDiagramDesc">GitHub main의 소스가 Docker 이미지를 거쳐 Render에 배포됩니다. 사용자 브라우저는 server.py API를 호출하고, 서버는 Groq와 Gemini로 문제 생성과 채점, SQLite 또는 Supabase에 학습 기록을 처리합니다.</desc>
-            <defs>
-              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,6 L9,3 z" fill="#ea7b5c"></path>
-              </marker>
-              <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,6 L9,3 z" fill="#6556ad"></path>
-              </marker>
-            </defs>
-
-            <text class="diagram-kicker" x="70" y="52">배포 과정</text>
-            <path class="diagram-arrow" d="M220 84 H330" marker-end="url(#arrow)"></path>
-            <path class="diagram-arrow" d="M510 84 H620" marker-end="url(#arrow)"></path>
-
-            <g class="diagram-node">
-              <rect x="70" y="58" width="150" height="52" rx="7"></rect>
-              <text x="145" y="80" text-anchor="middle" class="node-title">GitHub main</text>
-              <text x="145" y="98" text-anchor="middle" class="node-meta">소스 · 커리큘럼</text>
+        <figure class="architecture-diagram" aria-label="영작 제출이 브라우저, Python 서버, AI와 학습 데이터 저장소를 거치는 흐름">
+          <svg viewBox="0 0 1180 430" role="img" aria-labelledby="diagramTitle">
+            <title id="diagramTitle">영작 제출 처리 흐름</title>
+            <text class="diagram-kicker" x="20" y="34">사용자가 답안을 제출하면</text>
+            <g class="diagram-node primary" transform="translate(20 70)">
+              <rect width="220" height="95" rx="8"/>
+              <text class="node-title" x="18" y="34">01 브라우저 화면</text>
+              <text class="node-meta" x="18" y="61">한글 상황 · 영어 답안</text>
+              <text class="node-meta" x="18" y="79">입력 후 즉시 제출</text>
             </g>
-            <g class="diagram-node">
-              <rect x="360" y="58" width="150" height="52" rx="7"></rect>
-              <text x="435" y="80" text-anchor="middle" class="node-title">Docker 이미지</text>
-              <text x="435" y="98" text-anchor="middle" class="node-meta">실행 환경 고정</text>
+            <path class="diagram-arrow" d="M240 118H300"/>
+            <g class="diagram-node" transform="translate(300 70)">
+              <rect width="220" height="95" rx="8"/>
+              <text class="node-title" x="18" y="34">02 Python API</text>
+              <text class="node-meta" x="18" y="61">server.py</text>
+              <text class="node-meta" x="18" y="79">문제 정보와 답안 연결</text>
             </g>
-            <g class="diagram-node primary">
-              <rect x="650" y="58" width="150" height="52" rx="7"></rect>
-              <text x="725" y="80" text-anchor="middle" class="node-title">Render</text>
-              <text x="725" y="98" text-anchor="middle" class="node-meta">Public Web Service</text>
+            <path class="diagram-arrow purple" d="M520 118H580"/>
+            <g class="diagram-node ai" transform="translate(580 70)">
+              <rect width="220" height="95" rx="8"/>
+              <text class="node-title" x="18" y="34">03 Groq 평가</text>
+              <text class="node-meta" x="18" y="61">의미 · 문법 · 자연스러움</text>
+              <text class="node-meta" x="18" y="79">교정문 · 수정 이유</text>
             </g>
-
-            <path class="diagram-line dashed" d="M725 110 V146"></path>
-            <text class="diagram-kicker" x="70" y="176">실행 구조</text>
-
-            <g class="diagram-node">
-              <rect x="70" y="202" width="190" height="126" rx="8"></rect>
-              <text x="165" y="232" text-anchor="middle" class="node-title">브라우저</text>
-              <text x="165" y="260" text-anchor="middle" class="node-meta">index.html · CSS · JavaScript</text>
-              <line x1="92" y1="278" x2="238" y2="278" class="node-divider"></line>
-              <text x="165" y="300" text-anchor="middle" class="node-meta">영작 입력 · 타이머 · 피드백</text>
+            <path class="diagram-arrow" d="M800 118H860"/>
+            <g class="diagram-node database" transform="translate(860 70)">
+              <rect width="300" height="95" rx="8"/>
+              <text class="node-title" x="18" y="34">04 학습 데이터</text>
+              <text class="node-meta" x="18" y="61">Supabase 인증 계정</text>
+              <text class="node-meta" x="18" y="79">사용자별 RLS 학습 기록</text>
             </g>
-
-            <path class="diagram-arrow" d="M260 265 H350" marker-end="url(#arrow)"></path>
-            <text class="edge-label" x="305" y="250" text-anchor="middle">HTTPS API</text>
-
-            <g class="diagram-node primary">
-              <rect x="380" y="202" width="230" height="126" rx="8"></rect>
-              <text x="495" y="232" text-anchor="middle" class="node-title">Python API 서버</text>
-              <text x="495" y="260" text-anchor="middle" class="node-meta">server.py · 인증 · 라우팅</text>
-              <line x1="402" y1="278" x2="588" y2="278" class="node-divider"></line>
-              <text x="495" y="300" text-anchor="middle" class="node-meta">문제 선택 · 채점 · 복습 상태 갱신</text>
+            <text class="diagram-kicker" x="20" y="220">결과가 다시 화면과 기록으로 연결됩니다</text>
+            <g class="diagram-node data-detail" transform="translate(160 250)">
+              <rect width="240" height="100" rx="8"/>
+              <text class="node-title" x="18" y="34">판정 결과</text>
+              <text class="node-meta" x="18" y="62">정답 · 부분정답 · 오답</text>
+              <text class="node-meta" x="18" y="80">핵심 표현 · 소요 시간</text>
             </g>
-
-            <path class="diagram-arrow purple" d="M610 246 H700" marker-end="url(#arrowPurple)"></path>
-            <text class="edge-label" x="655" y="231" text-anchor="middle">문제 생성</text>
-
-            <g class="diagram-node ai">
-              <rect x="730" y="202" width="150" height="126" rx="8"></rect>
-              <text x="805" y="232" text-anchor="middle" class="node-title">AI API</text>
-              <text x="805" y="260" text-anchor="middle" class="node-meta">Groq · Gemini</text>
-              <line x1="752" y1="278" x2="858" y2="278" class="node-divider"></line>
-              <text x="805" y="300" text-anchor="middle" class="node-meta">상황 생성 · 영작 평가</text>
+            <g class="diagram-node data-detail" transform="translate(470 250)">
+              <rect width="240" height="100" rx="8"/>
+              <text class="node-title" x="18" y="34">학습 기록</text>
+              <text class="node-meta" x="18" y="62">상황 · 내 답 · 교정문</text>
+              <text class="node-meta" x="18" y="80">AI 피드백 · 답변 시간</text>
             </g>
-
-            <path class="diagram-arrow" d="M610 294 H700" marker-end="url(#arrow)"></path>
-            <text class="edge-label" x="655" y="320" text-anchor="middle">학습 기록</text>
-
-            <g class="diagram-node database">
-              <rect x="730" y="348" width="150" height="52" rx="7"></rect>
-              <text x="805" y="370" text-anchor="middle" class="node-title">학습 데이터</text>
-              <text x="805" y="388" text-anchor="middle" class="node-meta">SQLite · Supabase</text>
+            <g class="diagram-node data-detail" transform="translate(780 250)">
+              <rect width="240" height="100" rx="8"/>
+              <text class="node-title" x="18" y="34">다음 학습에 반영</text>
+              <text class="node-meta" x="18" y="62">취약 표현 · 복습 시점</text>
+              <text class="node-meta" x="18" y="80">난이도와 표현 진도</text>
             </g>
-
-            <path class="diagram-line db-line" d="M610 265 C670 265 655 374 730 374"></path>
-            <g class="diagram-node data-detail">
-              <rect x="380" y="348" width="230" height="52" rx="7"></rect>
-              <text x="495" y="370" text-anchor="middle" class="node-title">저장 정보</text>
-              <text x="495" y="388" text-anchor="middle" class="node-meta">문장 · 정답여부 · 표현 · 소요시간 · 복습진도</text>
-            </g>
+            <path class="diagram-line" d="M690 165V210H280V250"/>
+            <path class="diagram-line" d="M690 165V250"/>
+            <path class="diagram-line" d="M690 165V210H900V250"/>
           </svg>
         </figure>
       </section>
+
+      <section class="learning-section" id="learning-history" data-learning-section="history" hidden aria-labelledby="historyTitle">
+        <div class="learning-heading"><div class="eyebrow">Your practice</div><h2 id="historyTitle">학습 기록</h2><p>지금까지 연습한 문장과 답변, AI 피드백을 다시 확인할 수 있어요.</p></div>
+        <div class="history-filters" role="group" aria-label="학습 기록 필터">
+          <button type="button" data-history-filter="all" aria-pressed="true">전체</button>
+          <button type="button" data-history-filter="correct" aria-pressed="false">정답</button>
+          <button type="button" data-history-filter="incorrect" aria-pressed="false">다시 연습</button>
+        </div>
+        <p class="learning-message" id="historyMessage" role="status" aria-live="polite"></p>
+        <div class="history-list" id="historyList"></div>
+      </section>
+
+      <section class="learning-section" id="learning-analysis" data-learning-section="analysis" hidden aria-labelledby="analysisTitle">
+        <div class="learning-heading"><div class="eyebrow">Learning report</div><h2 id="analysisTitle">학습 분석</h2><p>저장된 연습 기록을 바탕으로 현재 학습 흐름을 살펴봐요.</p></div>
+        <div class="analysis-stats" id="analysisStats"></div>
+        <div class="analysis-details">
+          <section><h3>다시 살펴볼 표현</h3><div id="weakExpressions"></div></section>
+          <section><h3>최근 정답률 흐름</h3><div id="recentTrend"></div></section>
+        </div>
+      </section>
     </main>
 
-    <footer>
-      <span class="footer-brand">typing</span>
-      <span>작은 문장이 쌓이는 곳.</span>
-      <span>© 2026 typing</span>
-    </footer>
+    <footer><span class="footer-brand">typing</span><span>작은 문장이 쌓이는 곳.</span><span>© 2026 typing</span></footer>
   </div>
 
-  <button class="chat-fab" id="chatFab" aria-label="학습 도우미 챗봇 열기" aria-expanded="false" aria-controls="chatPanel">
+  <button class="chat-fab" id="chatFab" aria-label="학습 도우미 챕봇 열기" aria-expanded="false" aria-controls="chatPanel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H6l-4 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 9h10M7 13h7"/></svg>
   </button>
   <section class="chat-panel" id="chatPanel" aria-label="학습 도우미" hidden>
     <div class="chat-header">typing · 학습 도우미<button id="closeChat" aria-label="챗봇 닫기">×</button></div>
-    <div class="chat-log" id="chatLog" role="log" aria-live="polite"><div class="message">영작 훈련이나 이용 방법을 질문해 주세요.</div></div>
+    <div class="chat-log" id="chatLog" role="log" aria-live="polite"><div class="message">영작 훈련 방법이나 이용 방법을 입력해 주세요.</div></div>
     <div class="chat-options" id="chatOptions" role="group" aria-label="도움말 항목"></div>
     <form class="chat-form" id="chatForm"><input id="chatInput" aria-label="학습 방법 질문" placeholder="궁금한 연습 방법을 입력하세요" autocomplete="off" maxlength="500"><button type="submit">전송</button></form>
   </section>
+
+  <script src="./app/js/chatbot.js" defer></script>
+  <script src="./app/js/history.js" defer></script>
+  <script src="./app/js/writing.js" defer></script>
 </body>
 </html>

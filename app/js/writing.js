@@ -1,7 +1,5 @@
 // app/js/writing.js - 실전 영작 스피드 훈련 & AI 피드백 엔진
 (() => {
-  // 1. 상태 변수 & AI 흐름 (Gemini가 매 문제를 실시간 생성 — 로컬 드릴 배열 없음)
-
   // 2. 상태 변수
   let currentDrill = null;
   const timerLimit = 60;
@@ -11,8 +9,6 @@
   let currentStreak = 0;
   let wrongNotes = JSON.parse(localStorage.getItem('wrong_notes') || '[]');
   let favoriteNotes = JSON.parse(localStorage.getItem('favorite_notes') || '[]');
-  let guestPracticeCount = parseInt(localStorage.getItem('guest_practice_count') || '0', 10);
-  let isGuestContinue = false;
 
   let timerInterval = null;
   let remainingSeconds = timerLimit;
@@ -21,13 +17,12 @@
   let startTime = 0;
 
   let learnedExpressions = [];
+  let controlsReady = false;
   const dailyStatsKey = `training_daily_${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })}`;
   let dailyStats = JSON.parse(localStorage.getItem(dailyStatsKey) || '{"solved":0,"correct":0,"timeTotal":0,"expressions":[]}');
-  let guestLearnerId = localStorage.getItem('training_guest_id');
-  if (!guestLearnerId) {
-    guestLearnerId = `guest-${crypto.randomUUID()}`;
-    localStorage.setItem('training_guest_id', guestLearnerId);
-  }
+  const trialCountKey = 'typing_trial_count';
+  let trialCount = parseInt(localStorage.getItem(trialCountKey) || '0', 10);
+  const trialLimit = 10;
 
   // DOM Elements
   const koreanPrompt = document.querySelector('#koreanPrompt');
@@ -38,7 +33,6 @@
   const expandStatus = document.querySelector('#expandStatus');
   const feedbackContainer = document.querySelector('#feedbackContainer');
   const feedbackTitle = document.querySelector('#feedbackTitle');
-  const resultBadge = document.querySelector('#resultBadge');
   const correctedSentence = document.querySelector('#correctedSentence');
   const feedbackReason = document.querySelector('#feedbackReason');
   const btnToggleFavorite = document.querySelector('#btnToggleFavorite');
@@ -50,7 +44,7 @@
 
   const practiceGate = document.querySelector('#practiceGate');
   const practiceContent = document.querySelector('#practiceContent');
-  const continueTrialBtn = document.querySelector('#continueTrialBtn');
+  const practiceLogin = document.querySelector('#practiceLogin');
   const btnFinishSession = document.querySelector('#btnFinishSession');
   const summaryModal = document.querySelector('#summaryModal');
   const btnCloseSummary = document.querySelector('#btnCloseSummary');
@@ -58,14 +52,27 @@
 
   // 3. 초기화 및 이벤트 리스너 설정
   async function init() {
+    setupControls();
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+      if (trialCount >= trialLimit) {
+        if (practiceGate) practiceGate.hidden = false;
+        if (practiceContent) practiceContent.hidden = true;
+      } else {
+        if (practiceGate) practiceGate.hidden = true;
+        if (practiceContent) practiceContent.hidden = false;
+        updateProgress();
+        await fetchAndRenderQuestion();
+      }
+      return;
+    }
     if (practiceGate) practiceGate.hidden = true;
     if (practiceContent) practiceContent.hidden = false;
     updateProgress();
-    setupControls();
     await fetchAndRenderQuestion();
   }
 
-  // AI로 문제 받아오기 (Gemini → Groq 순, 실패 시 에러 표시)
+  // AI로 문제 받아오기 (실패 시 에러 표시)
   async function fetchAndRenderQuestion(reviewExpression = null) {
     koreanPrompt.textContent = '⏳ AI가 새 문제를 생성하는 중...';
     feedbackContainer.hidden = true;
@@ -84,8 +91,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
-          review_expression: reviewExpression || null,
-          user_id: guestLearnerId
+          review_expression: reviewExpression || null
         })
       });
       const payload = await res.json().catch(() => ({}));
@@ -129,6 +135,11 @@
   }
 
   function setupControls() {
+    if (controlsReady) return;
+    controlsReady = true;
+    if (practiceLogin) {
+      practiceLogin.addEventListener('click', () => document.querySelector('#authBtn')?.click());
+    }
     // 입력창 포커스 시 타이머 가동
     expandInput.addEventListener('focus', () => {
       if (!timerRunning && !isWaitingNext) startTimer();
@@ -159,14 +170,6 @@
       nextDrill();
     });
 
-    if (continueTrialBtn) {
-      continueTrialBtn.addEventListener('click', () => {
-        isGuestContinue = true;
-        if (practiceGate) practiceGate.hidden = true;
-        if (practiceContent) practiceContent.hidden = false;
-        expandInput.focus();
-      });
-    }
   }
 
   // 4. 타이머 관리
@@ -220,7 +223,7 @@
 
     stopTimer();
     const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
-    expandStatus.textContent = '⚡ 실시간 3대 기준으로 분석 중...';
+    expandStatus.textContent = 'AI 분석 중...';
 
     // 평가 요청 (AI 서버 우선 ➔ 최소 폴백)
     let evalResult = null;
@@ -236,7 +239,6 @@
           category: currentDrill.category || '',
           user_text: text,
           time_spent: timeSpent,
-          user_id: guestLearnerId,
           expression_id: currentDrill.expression_id || '',
           training_mode: currentDrill.training_mode || '',
           question_type: currentDrill.question_type || '',
@@ -245,6 +247,7 @@
       });
       if (res.ok) {
         evalResult = await res.json();
+        if (token) window.dispatchEvent(new Event('learninghistorychange'));
       }
     } catch (e) {
       console.log('Server assess offline, falling back to local heuristic evaluator');
@@ -311,23 +314,31 @@
     sessionTimeTotal += timeSpent;
     dailyStats.solved++;
     dailyStats.timeTotal += timeSpent;
-    guestPracticeCount++;
-    localStorage.setItem('guest_practice_count', String(guestPracticeCount));
 
-    if (res.is_correct) {
+    if (!localStorage.getItem('jwt')) {
+      trialCount++;
+      localStorage.setItem(trialCountKey, String(trialCount));
+      if (trialCount >= trialLimit) {
+        stopTimer();
+        isWaitingNext = false;
+        if (practiceContent) practiceContent.hidden = true;
+        if (practiceGate) practiceGate.hidden = false;
+        expandStatus.textContent = '체험 10문장을 모두 완료했어요. 로그인하면 이어서 연습할 수 있어요.';
+        return;
+      }
+    }
+
+    const outcome = res.outcome || (res.is_correct ? 'correct' : 'incorrect');
+    if (outcome === 'correct') {
       sessionCorrect++;
       dailyStats.correct++;
       currentStreak++;
-      feedbackTitle.textContent = '✅ 정답 & 훌륭한 표현!';
+      feedbackTitle.textContent = '정답';
       feedbackTitle.style.color = '#27ae60';
-      resultBadge.textContent = 'EXCELLENT';
-      resultBadge.style.color = '#27ae60';
     } else {
       currentStreak = 0;
-      feedbackTitle.textContent = '💡 교정 피드백 & 뉘앙스 주의';
-      feedbackTitle.style.color = '#e67e22';
-      resultBadge.textContent = res.missed_nuance ? 'NUANCE MISSED' : 'CHECK NEEDED';
-      resultBadge.style.color = '#c0392b';
+      feedbackTitle.textContent = outcome === 'partial' ? '부분 정답' : '오답';
+      feedbackTitle.style.color = outcome === 'partial' ? '#a45b10' : '#a93525';
 
       // 오답 노트에 추가
       addWrongNote({
@@ -354,11 +365,6 @@
     updateProgress();
     expandStatus.textContent = 'Enter를 누르면 다음 문제로 즉시 넘어갑니다 ➔';
 
-    // 게스트 5회 무료 체험 안내
-    const token = localStorage.getItem('jwt');
-    if (!token && guestPracticeCount >= 5 && !isGuestContinue) {
-      practiceGate.hidden = false;
-    }
   }
 
   // 7. 다음 문제로 이동 (AI에서 새 문제 받아옴)
@@ -368,7 +374,11 @@
 
   // 8. 동기부여 넛지 및 프로그레스 갱신
   function updateProgress() {
-    progressText.textContent = `오늘 ${dailyStats.solved}문장`;
+    if (!localStorage.getItem('jwt')) {
+      progressText.textContent = `체험 ${trialCount}/${trialLimit}문장`;
+    } else {
+      progressText.textContent = `오늘 ${dailyStats.solved}문장`;
+    }
   }
 
   function updateBadges() {
@@ -411,7 +421,7 @@
       ? points
       : String(fallbackReason || '').split(/\n+/).filter(Boolean);
     feedbackReason.replaceChildren();
-    (items.length ? items : ['교정문을 참고해 다음 문장에서 다시 시도해 보세요.']).slice(0, 4).forEach(point => {
+    (items.length ? items : ['교정문을 참고해 다음 문장에서 다시 시도해 보세요.']).slice(0, 3).forEach(point => {
       const item = document.createElement('p');
       item.className = 'feedback-point';
       item.textContent = point;
@@ -511,4 +521,14 @@
 
   // 실행
   window.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('authchange', () => {
+    if (localStorage.getItem('jwt')) {
+      window.location.reload();
+    } else {
+      init();
+    }
+  });
+  window.addEventListener('trialgatecheck', () => {
+    if (!localStorage.getItem('jwt')) init();
+  });
 })();

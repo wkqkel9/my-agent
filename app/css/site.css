@@ -438,4 +438,114 @@
   border-radius: 4px;
   font-size: 13px;
 }
+.learning-nav-link[hidden],
+.learning-section[hidden] { display: none; }
+.learning-section {
+  min-height: 55vh;
+  padding: 70px 0;
+  border-top: 1px solid var(--line);
+}
+.learning-heading { margin-bottom: 28px; }
+.learning-heading h2 { margin-top: 14px; }
+.learning-heading p,
+.learning-message { color: var(--muted); font-size: 13px; line-height: 1.8; }
+.learning-message { min-height: 22px; }
+.history-filters { display: flex; gap: 8px; margin: 20px 0; }
+.history-filters button {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+}
+.history-filters button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+.history-list { overflow-x: auto; }
+.analysis-details > section,
+.history-table {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.history-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.history-table th,
+.history-table td {
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.history-table th {
+  background: #fbfaf8;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.history-table tbody tr:last-child td { border-bottom: 0; }
+.history-table th:nth-child(1),
+.history-table td:nth-child(1) { width: 120px; }
+.history-table th:nth-child(2),
+.history-table td:nth-child(2) { width: 24%; }
+.history-table th:nth-child(3),
+.history-table td:nth-child(3) { width: 13%; }
+.history-table th:nth-child(4),
+.history-table td:nth-child(4) { width: 18%; }
+.history-table th:nth-child(5),
+.history-table td:nth-child(5) { width: 18%; }
+.history-table th:nth-child(6),
+.history-table td:nth-child(6) { width: 72px; white-space: nowrap; }
+.history-result-cell { font-weight: 700; }
+.history-result-cell[data-correct="true"] { color: #4a7950; }
+.history-result-cell[data-correct="false"] { color: var(--orange); }
+.history-card,
+.analysis-details > section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 20px;
+}
+.history-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.history-result { font-size: 11px; font-weight: 700; }
+.history-result[data-correct="true"] { color: #4a7950; }
+.history-result[data-correct="false"] { color: var(--orange); }
+.history-date,
+.history-meta { color: var(--muted); font-size: 11px; }
+.history-prompt { margin: 14px 0 10px; font-size: 16px; font-weight: 600; line-height: 1.7; }
+.history-answer { display: grid; gap: 8px; margin-top: 12px; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.history-answer strong { display: block; margin-bottom: 2px; font-size: 10px; color: var(--muted); }
+.history-feedback { margin: 14px 0 0; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.analysis-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.analysis-stat { padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.analysis-stat-value { font-size: 25px; font-weight: 700; }
+.analysis-stat-label { margin-top: 4px; color: var(--muted); font-size: 11px; }
+.analysis-details { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.analysis-details h3 { margin: 0 0 12px; font-size: 15px; }
+.analysis-detail-copy { color: var(--muted); font-size: 12px; line-height: 1.8; }
+.weak-expression-list { display: grid; gap: 8px; }
+.weak-expression-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; line-height: 1.6; }
+.weak-expression-row span:last-child { color: var(--muted); white-space: nowrap; }
+.learning-view-active main > .practice-lead,
+.learning-view-active main > .project-intro,
+.learning-view-active main > .architecture {
+  display: none;
+}
+.learning-view-active .learning-section {
+  min-height: calc(100vh - 180px);
+}
+@media(max-width:640px) {
+  .learning-section { padding: 44px 0; }
+  .analysis-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analysis-details { grid-template-columns: 1fr; }
+  .history-card { padding: 16px; }
+  .history-table { min-width: 760px; }
+}
 
